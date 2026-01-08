@@ -4,6 +4,7 @@ const {
   updateMateriaPrima,
   getAllMateriaPrima,
   getMateriaPrimaByName,
+  getMateriaPrimaByID,
   deleteMateriaPrima,
 } = require('../models/materiaprima.model');
 
@@ -57,10 +58,15 @@ const update = async (req, res) => {
 // READ ALL
 const getAll = async (req, res) => {
   const pool = connectFromJWT(req);
+  const page = parseInt(req.query.page) || 1;
 
   try {
-    const result = await getAllMateriaPrima(pool);
-    res.status(200).json(result);
+    const result = await getAllMateriaPrima(pool, page);
+    res.status(200).json({
+      page,
+      limit: process.env.PAGINATION_LIMIT,
+      data: result
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   } finally {
@@ -68,12 +74,33 @@ const getAll = async (req, res) => {
   }
 };
 
+// Get Parameter
 const getByName = async (req, res) => {
   const pool = connectFromJWT(req);
   const { name } = req.query;
+  const page = parseInt(req.query.page) || 1;
 
   try {
-    const result = await getMateriaPrimaByName(pool, name);
+    const result = await getMateriaPrimaByName(pool, name, page);
+    res.status(200).json({
+      page,
+      limit: process.env.PAGINATION_LIMIT,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  } finally {
+    await pool.end();
+  }
+};
+
+// Get Unique
+const getByID = async (req, res) => {
+  const pool = connectFromJWT(req);
+  const { id } = req.params;
+
+  try {
+    const result = await getMateriaPrimaByID(pool, id);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -102,5 +129,6 @@ module.exports = {
   update,
   getAll,
   getByName,
+  getByID,
   remove,
 };

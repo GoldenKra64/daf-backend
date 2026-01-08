@@ -10,4 +10,8 @@ app.use(express.json());
 app.use('/api/pos', authRoutes);
 app.use('/api/pos/materiaprima', materiaPrimaRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({ message: 'Endpoint not found' });
+});
+
 module.exports = app;

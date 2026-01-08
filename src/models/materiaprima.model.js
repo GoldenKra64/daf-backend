@@ -2,7 +2,7 @@ const createMateriaPrima = async (pool, data) => {
   const query = `
     INSERT INTO materia_prima
     (mp_codigo, um_compra, mp_descripcion, mp_precio_compra, mp_cantidad, mp_prioridad, mp_estado)
-    VALUES ($1, $2, $3, $4, $5, $6, ''${process.env.ACTIVE_STATUS_INDEPENDENT}'')
+    VALUES ($1, $2, $3, $4, $5, $6, '${process.env.ACTIVE_STATUS_INDEPENDENT}')
     RETURNING *
   `;
 
@@ -43,18 +43,32 @@ const updateMateriaPrima = async (pool, id, data) => {
   return result.rows[0];
 };
 
-const getAllMateriaPrima = async (pool) => {
-  const result = await pool.query(`SELECT * FROM materia_prima WHERE mp_estado = '${process.env.ACTIVE_STATUS_INDEPENDENT}'`);
+const getAllMateriaPrima = async (pool, page=1) => {
+  const limit = parseInt(process.env.PAGINATION_LIMIT);
+  const offset = (page - 1) * limit;
+  const result = await pool.query(`SELECT * FROM materia_prima WHERE mp_estado = '${process.env.ACTIVE_STATUS_INDEPENDENT}' LIMIT $1 OFFSET $2`, [limit, offset]);
   return result.rows;
 };
 
-const getMateriaPrimaByName = async (pool, name) => {
+const getMateriaPrimaByName = async (pool, name, page=1) => {
+  const limit = parseInt(process.env.PAGINATION_LIMIT);
+  const offset = (page - 1) * limit;
   const query = `
     SELECT * FROM materia_prima
     WHERE mp_descripcion ILIKE $1 AND mp_estado = '${process.env.ACTIVE_STATUS_INDEPENDENT}'
+    LIMIT $2 OFFSET $3
   `;
-  const result = await pool.query(query, [`%${name}%`]);
+  const result = await pool.query(query, [`%${name}%`, limit, offset]);
   return result.rows;
+};
+
+const getMateriaPrimaByID = async (pool, id) => {
+  const query = `
+    SELECT * FROM materia_prima
+    WHERE mp_codigo = $1'
+  `;
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
 };
 
 const deleteMateriaPrima = async (pool, id) => {
@@ -72,5 +86,6 @@ module.exports = {
   updateMateriaPrima,
   getAllMateriaPrima,
   getMateriaPrimaByName,
+  getMateriaPrimaByID,
   deleteMateriaPrima
 };

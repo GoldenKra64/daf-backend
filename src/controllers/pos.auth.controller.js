@@ -14,9 +14,7 @@ const login = async (req, res) => {
 
   try {
     pool = getConnectionWithCredentials(user, password);
-
     const result = await pool.query('SELECT current_user');
-
     const role = result.rows[0].current_user;
 
     const token = jwt.sign(
