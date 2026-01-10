@@ -41,6 +41,12 @@ const getAccessByRole = (role) => {
         key => accessTemplate[key] = true
       );
       return accessTemplate;
+      
+    case 'postgres':
+      Object.keys(accessTemplate).forEach(
+        key => accessTemplate[key] = true
+      );
+      return accessTemplate;
 
     default:
       return accessTemplate;
