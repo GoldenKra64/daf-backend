@@ -62,11 +62,17 @@ const getAll = async (req, res) => {
 
   try {
     const result = await getAllMateriaPrima(pool, page);
+
+    if (!result.length) {
+      return res.status(404).json({ message: 'No se encontraron materias primas' });
+    }
+
     res.status(200).json({
       page,
       limit: process.env.PAGINATION_LIMIT,
-      data: result
+      data: result,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   } finally {
@@ -76,12 +82,20 @@ const getAll = async (req, res) => {
 
 // Get Parameter
 const getByName = async (req, res) => {
+  if (req.query.name === undefined) {
+    return res.status(400).json({ message: 'El parámetro name es requerido' });
+  }
+
   const pool = connectFromJWT(req);
   const { name } = req.query;
   const page = parseInt(req.query.page) || 1;
 
   try {
     const result = await getMateriaPrimaByName(pool, name, page);
+    if (!result.length) {
+      return res.status(404).json({ message: 'No se encontraron materias primas con ese nombre' });
+    }
+
     res.status(200).json({
       page,
       limit: process.env.PAGINATION_LIMIT,
@@ -96,11 +110,21 @@ const getByName = async (req, res) => {
 
 // Get Unique
 const getByID = async (req, res) => {
+
+  if (req.params.id === undefined) {
+    return res.status(400).json({ message: 'El parámetro id es requerido' });
+  }
+
   const pool = connectFromJWT(req);
   const { id } = req.params;
 
   try {
     const result = await getMateriaPrimaByID(pool, id);
+
+    if (!result) {
+      return res.status(404).json({ message: 'No se encontraron materias primas' });
+    }
+
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
