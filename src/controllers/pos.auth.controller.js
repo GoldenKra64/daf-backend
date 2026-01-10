@@ -14,8 +14,14 @@ const login = async (req, res) => {
 
   try {
     pool = getConnectionWithCredentials(user, password);
-    const result = await pool.query('SELECT current_user');
-    const role = result.rows[0].current_user;
+    const result = await pool.query(`
+      SELECT r.rolname
+      FROM pg_roles r
+      JOIN pg_auth_members m ON r.oid = m.roleid
+      JOIN pg_roles u ON u.oid = m.member
+      WHERE u.rolname = (SELECT CURRENT_USER)
+`);
+    const role = result.rows[0].rolname;
 
     const token = jwt.sign(
       {
