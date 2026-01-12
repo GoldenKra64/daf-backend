@@ -11,7 +11,7 @@ const getAccessByRole = (role) => {
   };
 
   switch (role) {
-    case 'inventario':
+    case 'bodega':
       return {
         ...accessTemplate,
         PRODUCTO: true,

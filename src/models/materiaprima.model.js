@@ -93,11 +93,34 @@ const deleteMateriaPrima = async (pool, id) => {
   return result.rows;
 };
 
+const getCountMateriaPrima = async (pool) => {
+  const query = `
+    SELECT COUNT(*) 
+    FROM materia_prima
+  `
+
+  const result = await pool.query(query);
+  return result.rows[0].count;
+};
+
+const getMateriaPrimaForSelect = async (pool) => {
+  const query = `
+    SELECT mp_codigo, mp_descripcion
+    FROM materia_prima
+    ORDER BY mp_descripcion
+  `
+
+  const result = await pool.query(query);
+  return result.rows;
+}
+
 module.exports = {
   createMateriaPrima,
   updateMateriaPrima,
   getAllMateriaPrima,
   getMateriaPrimaByName,
   getMateriaPrimaByID,
-  deleteMateriaPrima
+  deleteMateriaPrima,
+  getCountMateriaPrima,
+  getMateriaPrimaForSelect
 };

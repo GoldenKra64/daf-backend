@@ -1,16 +1,13 @@
 const { getConnectionWithCredentials } = require('../config/db');
 const {
-  createMateriaPrima,
-  updateMateriaPrima,
-  getAllMateriaPrima,
-  getMateriaPrimaByName,
-  getMateriaPrimaByID,
-  deleteMateriaPrima,
-  getCountMateriaPrima,
-  getMateriaPrimaForSelect
-} = require('../models/materiaprima.model');
-
-const { validateMateriaPrimaDTO } = require('../dtos/materiaprima.dto');
+  createKardexMP,
+  updateKardexMP,
+  getAllKardexMP,
+  getKardexMPByName,
+  getKardexMPByID,
+  deleteKardexMP,
+  getCountKardexMP
+} = require('../models/kardexmp.model');
 
 const connectFromJWT = (req) => {
   const { usuario, password } = req.user;
@@ -19,17 +16,16 @@ const connectFromJWT = (req) => {
 
 // CREATE
 const create = async (req, res) => {
-  const errors = validateMateriaPrimaDTO(req.body);
 
-  if (errors.length) {
-    return res.status(400).json({ errors });
+  if (req.body == null) {
+    return res.status(400).json({ message: "La solicitud no puede ser vacia" });
   }
 
   const pool = connectFromJWT(req);
 
   try {
-    const result = await createMateriaPrima(pool, req.body);
-    res.status(201).json(result);
+    const result = await createKardexMP(pool, req.body);
+    res.status(201).json();
   } catch (error) {
     res.status(500).json({ message: error.message });
   } finally {
@@ -39,16 +35,14 @@ const create = async (req, res) => {
 
 // UPDATE
 const update = async (req, res) => {
-  const errors = validateMateriaPrimaDTO(req.body, true);
-
-  if (errors.length) {
-    return res.status(400).json({ errors });
+  if (req.body == null) {
+    return res.status(400).json({ message: "La solicitud no puede ser vacia" });
   }
 
   const pool = connectFromJWT(req);
 
   try {
-    const result = await updateMateriaPrima(pool, req.params.id, req.body);
+    const result = await updateKardexMP(pool, req.params.id, req.body);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -63,13 +57,12 @@ const getAll = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
 
   try {
-    const result = await getAllMateriaPrima(pool, page);
+    const result = await getAllKardexMP(pool, page);
 
     if (!result.length) {
-      return res.status(404).json({ message: 'No se encontraron materias primas' });
+      return res.status(404).json({ message: 'No se encontraron registros de Kardex' });
     }
-
-    const count = await getCountMateriaPrima(pool);
+    const count = await getCountKardexMP(pool);
 
     res.status(200).json({
       page,
@@ -96,11 +89,11 @@ const getByName = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
 
   try {
-    const result = await getMateriaPrimaByName(pool, name, page);
+    const result = await getKardexMPByName(pool, name, page);
     if (!result.length) {
       return res.status(404).json({ message: 'No se encontraron materias primas con ese nombre' });
     }
-    const count = await getCountMateriaPrima(pool);
+    const count = await getCountKardexMP(pool);
 
     res.status(200).json({
       page,
@@ -126,7 +119,7 @@ const getByID = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await getMateriaPrimaByID(pool, id);
+    const result = await getKardexMPByID(pool, id);
 
     if (!result) {
       return res.status(404).json({ message: 'No se encontraron materias primas' });
@@ -146,26 +139,8 @@ const remove = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await deleteMateriaPrima(pool, id);
+    const result = await deleteKardexMP(pool, id);
     res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  } finally {
-    await pool.end();
-  }
-};
-
-// Get Type
-const getAsType = async (req, res) => {
-  const pool = connectFromJWT(req);
-
-  try {
-    const result = await getMateriaPrimaForSelect(pool);
-
-    if (!result.length) {
-      return res.status(404).json({ message: 'No se encontraron materias primas' });
-    }
-    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
   } finally {
@@ -180,5 +155,4 @@ module.exports = {
   getByName,
   getByID,
   remove,
-  getAsType
 };

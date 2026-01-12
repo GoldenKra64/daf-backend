@@ -2,12 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const { verifyToken } = require('../middlewares/pos.auth.middleware');
-const controller = require('../controllers/pos.materiaprima.controller');
+const controller = require('../controllers/pos.kardexmp.controller');
 
 // ENDPOINTS
 router.post('/', verifyToken, controller.create);
 router.get('/search', verifyToken, controller.getByName);
-router.get('/type', verifyToken, controller.getAsType);
 router.get('/:id', verifyToken, controller.getByID);
 router.get('/', verifyToken, controller.getAll);
 router.put('/:id', verifyToken, controller.update);
