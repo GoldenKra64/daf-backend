@@ -2,7 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/pos.auth.routes');
 const materiaPrimaRoutes = require('./routes/pos.materiaprima.routes');
+const kardexMPRoutes = require('./routes/pos.kardexmp.routes');
+
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
+const transaccionRoutes = require('./routes/pos.transaccion.routes');
 
 const app = express();
 
@@ -17,9 +20,11 @@ app.use(express.json());
 // RUTAS POS
 app.use('/api/pos', authRoutes);
 app.use('/api/pos/materiaprima', materiaPrimaRoutes);
+app.use('/api/pos/kardexmp', kardexMPRoutes);
 
 // RUTAS TABLAS TIPO
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
+app.use('/api/pos/transaccion', transaccionRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
