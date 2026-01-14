@@ -3,6 +3,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/pos.auth.routes');
 const materiaPrimaRoutes = require('./routes/pos.materiaprima.routes');
 const kardexMPRoutes = require('./routes/pos.kardexmp.routes');
+const estandarRoutes = require('./routes/pos.estandar.routes');
+const productoRoutes = require('./routes/pos.producto.routes');
 
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
@@ -21,6 +23,8 @@ app.use(express.json());
 app.use('/api/pos', authRoutes);
 app.use('/api/pos/materiaprima', materiaPrimaRoutes);
 app.use('/api/pos/kardexmp', kardexMPRoutes);
+app.use('/api/pos/estandar', estandarRoutes);
+app.use('/api/pos/producto', productoRoutes);
 
 // RUTAS TABLAS TIPO
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);

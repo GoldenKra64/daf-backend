@@ -8,7 +8,7 @@ const createKardexMP = async (pool, data) => {
     data.mp_codigo,
     data.krd_cantidad,
     data.krd_razon,
-    data.trn_codigo,
+    data.trn_cod,
   ];
 
   const result = await pool.query(query, values);
@@ -62,7 +62,7 @@ const getAllKardexMP = async (pool, page = 1) => {
   return result.rows;
 };
 
-const getKardexMPByName = async (pool, name, page=1) => {
+const getKardexMPByName = async (pool, name, page = 1) => {
   const limit = parseInt(process.env.PAGINATION_LIMIT);
   const offset = (page - 1) * limit;
   const query = `

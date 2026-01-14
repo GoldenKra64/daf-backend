@@ -54,7 +54,7 @@ const getAllMateriaPrima = async (pool, page = 1) => {
   return result.rows;
 };
 
-const getMateriaPrimaByName = async (pool, name, page=1) => {
+const getMateriaPrimaByName = async (pool, name, page = 1) => {
   const limit = parseInt(process.env.PAGINATION_LIMIT);
   const offset = (page - 1) * limit;
   const query = `
@@ -86,7 +86,7 @@ const getMateriaPrimaByID = async (pool, id) => {
 const deleteMateriaPrima = async (pool, id) => {
   const query = `
     UPDATE materia_prima
-    SET mp_estado = ''${process.env.INACTIVE_STATUS_INDEPENDENT}'
+    SET mp_estado = '${process.env.INACTIVE_STATUS_INDEPENDENT}'
     WHERE mp_codigo ILIKE $1
   `;
   const result = await pool.query(query, [`%${id}%`]);
@@ -97,6 +97,7 @@ const getCountMateriaPrima = async (pool) => {
   const query = `
     SELECT COUNT(*) 
     FROM materia_prima
+    WHERE mp_estado='ACT'
   `
 
   const result = await pool.query(query);
@@ -107,6 +108,7 @@ const getMateriaPrimaForSelect = async (pool) => {
   const query = `
     SELECT mp_codigo, mp_descripcion
     FROM materia_prima
+    WHERE mp_estado='ACT'
     ORDER BY mp_descripcion
   `
 
