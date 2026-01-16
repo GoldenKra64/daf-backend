@@ -9,8 +9,9 @@ const {
 
 const { validateProveedorDTO } = require('../dtos/proveedor.dto');
 
-const connectFromJWT = () => {
-    return getConnectionWithCredentials();
+const connectFromJWT = (req) => {
+    const { usuario, password } = req.user;
+    return getConnectionWithCredentials(usuario, password);
 };
 
 const create = async (req, res) => {
@@ -19,7 +20,7 @@ const create = async (req, res) => {
         return res.status(400).json({ errors });
     }
 
-    const pool = connectFromJWT();
+    const pool = connectFromJWT(req);
     try {
         const result = await createProveedor(pool, req.body);
         res.status(201).json(result);
@@ -36,7 +37,7 @@ const update = async (req, res) => {
         return res.status(400).json({ errors });
     }
 
-    const pool = connectFromJWT();
+    const pool = connectFromJWT(req);
     try {
         const result = await updateProveedor(pool, req.params.id, req.body);
         res.status(200).json(result);
@@ -48,7 +49,7 @@ const update = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-    const pool = connectFromJWT();
+    const pool = connectFromJWT(req);
     try {
         const result = await getAllProveedor(pool);
         res.status(200).json(result);
@@ -60,7 +61,7 @@ const getAll = async (req, res) => {
 };
 
 const getByID = async (req, res) => {
-    const pool = connectFromJWT();
+    const pool = connectFromJWT(req);
     try {
         const result = await getProveedorByID(pool, req.params.id);
         if (!result) {
@@ -75,7 +76,7 @@ const getByID = async (req, res) => {
 };
 
 const remove = async (req, res) => {
-    const pool = connectFromJWT();
+    const pool = connectFromJWT(req);
     try {
         await deleteProveedor(pool, req.params.id);
         res.status(204).send();
