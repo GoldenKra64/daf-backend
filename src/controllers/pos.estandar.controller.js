@@ -8,7 +8,7 @@ const {
   anuHeader
 } = require('../models/estandar.model');
 
-const { getConnectionWithCredentials } = require('../config/db');
+const { getConnectionWithCredentials } = require('../config/db_pos.js');
 
 const connectFromJWT = (req) => {
   const { usuario, password } = req.user;

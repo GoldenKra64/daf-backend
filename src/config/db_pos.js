@@ -3,9 +3,9 @@ require('dotenv').config();
 
 const getConnectionWithCredentials = (user, password) => {
   return new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
+    host: process.env.POS_HOST,
+    port: process.env.POS_PORT,
+    database: process.env.POS_NAME,
     user,
     password,
   });
