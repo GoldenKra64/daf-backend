@@ -15,6 +15,15 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.16.3"
-  }
+    "pg": "^8.17.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GoldenKra64/daf-backend.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GoldenKra64/daf-backend/issues"
+  },
+  "homepage": "https://github.com/GoldenKra64/daf-backend#readme"
 }
