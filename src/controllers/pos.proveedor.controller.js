@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const { getConnectionWithCredentials } = require('../config/db_pos.js');
 const {
     createProveedor,
@@ -93,3 +94,117 @@ module.exports = {
     getByID,
     remove
 };
+=======
+// src/controllers/pos.proveedor.controller.js
+const ProveedorModel = require('../models/proveedor.model');
+const { validateProveedorDTO } = require('../dtos/proveedor.dto');
+
+const ProveedorController = {
+
+    async list(req, res) {
+        try {
+            const { usuario, password } = req.user;
+            const data = await ProveedorModel.findAll(usuario, password);
+            res.json(data);
+        } catch (error) {
+            console.error('ERROR LISTAR PROVEEDORES:', error);
+            res.status(500).json({ message: 'Error al listar proveedores' });
+        }
+    },
+
+    async findById(req, res) {
+        try {
+            const { usuario, password } = req.user;
+
+            const proveedor = await ProveedorModel.findById(
+                req.params.id,
+                usuario,
+                password
+            );
+
+            if (!proveedor) {
+                return res.status(404).json({ message: 'Proveedor no encontrado' });
+            }
+
+            res.json(proveedor);
+        } catch (error) {
+            console.error('ERROR OBTENER PROVEEDOR:', error);
+            res.status(500).json({ message: 'Error al obtener proveedor' });
+        }
+    },
+
+    async create(req, res) {
+        try {
+            const { usuario, password } = req.user;
+
+            const errors = validateProveedorDTO(req.body);
+            if (errors.length > 0) {
+                return res.status(400).json({ errors });
+            }
+
+            const exists = await ProveedorModel.existsByRuc(
+                req.body.prv_ruc,
+                usuario,
+                password
+            );
+
+            if (exists) {
+                return res.status(400).json({
+                    message: 'El RUC del proveedor ya existe',
+                });
+            }
+
+            const proveedor = await ProveedorModel.create(
+                req.body,
+                usuario,
+                password
+            );
+
+            res.status(201).json(proveedor);
+
+        } catch (error) {
+            console.error('ERROR CREAR PROVEEDOR:', error);
+            res.status(500).json({ message: 'Error al crear proveedor' });
+        }
+    },
+
+    async update(req, res) {
+        try {
+            const { usuario, password } = req.user;
+
+            const proveedor = await ProveedorModel.update(
+                req.params.id,
+                req.body,
+                usuario,
+                password
+            );
+
+            res.json(proveedor);
+
+        } catch (error) {
+            console.error('ERROR ACTUALIZAR PROVEEDOR:', error);
+            res.status(500).json({ message: 'Error al actualizar proveedor' });
+        }
+    },
+
+    async remove(req, res) {
+        try {
+            const { usuario, password } = req.user;
+
+            await ProveedorModel.softDelete(
+                req.params.id,
+                usuario,
+                password
+            );
+
+            res.json({ message: 'Proveedor inactivado correctamente' });
+
+        } catch (error) {
+            console.error('ERROR ELIMINAR PROVEEDOR:', error);
+            res.status(500).json({ message: 'Error al eliminar proveedor' });
+        }
+    }
+};
+
+module.exports = ProveedorController;
+>>>>>>> f14ea63 (Interfaz de Proveedor)
