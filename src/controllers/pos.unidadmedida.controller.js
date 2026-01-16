@@ -1,4 +1,4 @@
-const { getConnectionWithCredentials } = require('../config/db');
+const { getConnectionWithCredentials } = require('../config/db_pos.js');
 const {
     getAllQuery,
 } = require('../models/unidadmedida.model');
