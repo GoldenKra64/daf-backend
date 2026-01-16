@@ -1,33 +1,21 @@
 const express = require('express');
 const cors = require('cors');
-const authRoutes = require('./routes/pos.auth.routes');
-const materiaPrimaRoutes = require('./routes/pos.materiaprima.routes');
-const kardexMPRoutes = require('./routes/pos.kardexmp.routes');
-const estandarRoutes = require('./routes/pos.estandar.routes');
-const productoRoutes = require('./routes/pos.producto.routes');
 
+// 1. Importar las Rutas
+const clienteRoutes = require('./routes/pos.cliente.routes');
 const appAuthRoutes = require('./routes/ecom.auth.routes');
-
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
 const ciudadRoutes = require('./routes/ecom.ciudad.routes');
 
 const app = express();
 
-let corsConfiguration = {
-  origin: process.env.FRONTEND_IP,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}
-app.use(cors(corsConfiguration));
+// 2. Middlewares
+app.use(cors());
 app.use(express.json());
 
-// RUTAS POS
-app.use('/api/pos', authRoutes);
-app.use('/api/pos/materiaprima', materiaPrimaRoutes);
-app.use('/api/pos/kardexmp', kardexMPRoutes);
-app.use('/api/pos/estandar', estandarRoutes);
-app.use('/api/pos/producto', productoRoutes);
+// 3. DEFINIR LA URL BASE
+app.use('/api/pos/cliente', clienteRoutes);
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
@@ -37,6 +25,12 @@ app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
 app.use('/api/pos/transaccion', transaccionRoutes);
 app.use('/api/ecom/ciudad', ciudadRoutes);
 
+// 4. Ruta de prueba raíz
+app.get('/', (req, res) => {
+  res.send('API DAF funcionando correctamente 🚀');
+});
+
+// Handler 404 (Al final de todas las rutas)
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
 });
