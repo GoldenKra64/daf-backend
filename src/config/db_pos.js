@@ -16,8 +16,4 @@ function getConnectionWithCredentials(user, password) {
   });
 }
 
-<<<<<<< HEAD:src/config/db_pos.js
 module.exports = { getConnectionWithCredentials };
-=======
-module.exports = getConnectionWithCredentials;
->>>>>>> f14ea63 (Interfaz de Proveedor):src/config/db.js
