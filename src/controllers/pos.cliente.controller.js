@@ -1,11 +1,9 @@
 // Importación de dependencias y modelo
-const { getConnectionWithCredentials } = require('../config/db');
+const { getConnectionWithCredentials } = require('../config/db_pos');
 const modeloCliente = require('../models/cliente.model');
 const { validateClienteDTO } = require('../dtos/cliente.dto');
 
-// Helper para conectar usando credenciales del JWT
 const connectFromJWT = (req) => {
-    // Se asume que verifyToken middleware ha poblado req.user
     const { usuario, password } = req.user;
     return getConnectionWithCredentials(usuario, password);
 };
@@ -62,8 +60,7 @@ const getAll = async (req, res) => {
             data: result
         });
     } catch (error) {
-        console.error("Error en getAllClientes:", error.message);
-        res.status(500).json({ message: "Error al obtener clientes" });
+        res.status(500).json({ message: error.message });
     } finally {
         await pool.end();
     }

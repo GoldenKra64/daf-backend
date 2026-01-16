@@ -9,12 +9,12 @@ const createCliente = async (pool, data) => {
   // Usamos CALL sp_crear_cliente(NULL, ...)
   // El primer parámetro es INOUT p_new_codigo.
   const query = `
-        CALL sp_crear_cliente(NULL, $1, $2, $3, $4, $5, $6, $7, $8, $9)
+        CALL sp_crear_cliente($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
   const values = [
-    ciudad, data.usr_email, data.cli_nombre, data.cli_ruc_ced,
-    data.cli_telefono, data.cli_mail, direccion, celular, estado
+    ciudad, null, data.cli_nombre, data.cli_ruc_ced,
+    data.cli_telefono, data.cli_mail, direccion, celular
   ];
 
   await pool.query(query, values);
@@ -81,7 +81,7 @@ const getClienteByName = async (pool, name) => {
 
 // 6. Eliminar (Borrado Lógico)
 const deleteCliente = async (pool, id) => {
-  const query = `UPDATE public.cliente SET cli_estado = 'INA' WHERE cli_codigo = $1`;
+  const query = `UPDATE public.cliente SET cli_estado = 'INA', cli_fecha_alta = CURRENT_TIMESTAMP WHERE cli_codigo = $1`;
   await pool.query(query, [id]);
   return true;
 };
