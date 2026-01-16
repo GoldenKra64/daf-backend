@@ -8,8 +8,6 @@ const createProveedorSchema = Joi.object({
     prv_mail: Joi.string().email().allow('', null),
     prv_direccion: Joi.string().allow('', null),
     ct_codigo: Joi.number().integer().required(),
-    prv_estado: Joi.string().valid('ACT', 'INA').default('ACT'),
-    prv_fecha_alta: Joi.date().default(Date.now)
 });
 
 const updateProveedorSchema = Joi.object({
