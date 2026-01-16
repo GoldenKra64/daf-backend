@@ -11,13 +11,6 @@ const validateClienteDTO = (data, isUpdate = false) => {
     }
   }
 
-  // Validación de Usuario (FK)
-  if (!isUpdate || data.usr_email !== undefined) {
-    if (!data.usr_email || data.usr_email.length > 60) {
-      errors.push('usr_email es requerido y máximo 60 caracteres');
-    }
-  }
-
   // Nombre
   if (!isUpdate || data.cli_nombre !== undefined) {
     if (!data.cli_nombre || data.cli_nombre.length > 120) {
@@ -27,8 +20,8 @@ const validateClienteDTO = (data, isUpdate = false) => {
 
   // RUC / Cédula (13 dígitos)
   if (!isUpdate || data.cli_ruc_ced !== undefined) {
-    if (!data.cli_ruc_ced || !/^\d{13}$/.test(data.cli_ruc_ced)) {
-      errors.push('cli_ruc_ced es requerido y debe tener 13 dígitos numéricos');
+    if (!data.cli_ruc_ced || !/^\d/.test(data.cli_ruc_ced)) {
+      errors.push('cli_ruc_ced es requerido y debe ser numérico');
     }
   }
 
