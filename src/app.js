@@ -7,6 +7,7 @@ const materiaPrimaRoutes = require('./routes/pos.materiaprima.routes');
 const kardexMPRoutes = require('./routes/pos.kardexmp.routes');
 const estandarRoutes = require('./routes/pos.estandar.routes');
 const productoRoutes = require('./routes/pos.producto.routes');
+const proveedorRoutes = require('./routes/pos.proveedor.routes');
 
 const appAuthRoutes = require('./routes/ecom.auth.routes');
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
@@ -16,17 +17,25 @@ const ciudadRoutes = require('./routes/ecom.ciudad.routes');
 const app = express();
 
 let corsConfiguration = {
-  origin: process.env.FRONTEND_IP,
+  origin: process.env.FRONTEND_IP ? [process.env.FRONTEND_IP] : ['http://localhost:5173', 'http://localhost:5174'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }
 app.use(cors(corsConfiguration));
 
 app.use(express.json());
 
-// Rutas POS
+// Middleware para logging de todas las peticiones
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+  next();
+});
+
+// RUTAS POS
 app.use('/api/pos', authRoutes);
 app.use('/api/pos/producto', productoRoutes);
+app.use('/api/pos/proveedor', proveedorRoutes);
 app.use('/api/pos/cliente', clienteRoutes);
 app.use('/api/pos/materiaprima', materiaPrimaRoutes);
 app.use('/api/pos/estandar', estandarRoutes);
