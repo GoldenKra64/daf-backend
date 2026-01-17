@@ -28,14 +28,14 @@ const validateProductoDTO = (data, isUpdate = false) => {
   }
 
   if (!isUpdate || data.prd_desc_corta !== undefined) {
-    if (!data.prd_desc_corta || data.prd_desc_corta.length > 255) {
-      errors.push('prd_desc_corta es requerida y máximo 255 caracteres');
+    if (!data.prd_desc_corta || data.prd_desc_corta.length > 60) {
+      errors.push('prd_desc_corta es requerida y máximo 60 caracteres');
     }
   }
 
   if (!isUpdate || data.prd_desc_larga !== undefined) {
-    if (!data.prd_desc_larga || data.prd_desc_larga.length > 60) {
-      errors.push('prd_desc_larga es requerida y máximo 60 caracteres');
+    if (!data.prd_desc_larga || data.prd_desc_larga.length > 255) {
+      errors.push('prd_desc_larga es requerida y máximo 255 caracteres');
     }
   }
 
