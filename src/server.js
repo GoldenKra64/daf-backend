@@ -1,6 +1,8 @@
 require('dotenv').config();
 
 const app = require('./app');
+
+// Obtener puerto del .env o defecto
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
