@@ -10,6 +10,8 @@ const productoRoutes = require('./routes/pos.producto.routes');
 const proveedorRoutes = require('./routes/pos.proveedor.routes');
 
 const appAuthRoutes = require('./routes/ecom.auth.routes');
+const carritoRoutes = require('./routes/ecom.carrito.routes');
+
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
 const ciudadRoutes = require('./routes/ecom.ciudad.routes');
@@ -26,12 +28,6 @@ app.use(cors(corsConfiguration));
 
 app.use(express.json());
 
-// Middleware para logging de todas las peticiones
-app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.path} - ${new Date().toISOString()}`);
-  next();
-});
-
 // RUTAS POS
 app.use('/api/pos', authRoutes);
 app.use('/api/pos/producto', productoRoutes);
@@ -43,6 +39,7 @@ app.use('/api/pos/kardexmp', kardexMPRoutes);
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
+app.use('/api/ecom/carrito', carritoRoutes);
 
 // RUTAS TABLAS TIPO
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
