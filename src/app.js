@@ -48,6 +48,9 @@ app.use('/api/pos/transaccion', transaccionRoutes);
 app.use('/api/ecom/ciudad', ciudadRoutes);
 app.use('/api/pos/categoria', categoriaRoutes);
 
+// ✅ CIUDAD PARA POS 
+app.use('/api/pos/ciudad', ciudadRoutes);
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
 });

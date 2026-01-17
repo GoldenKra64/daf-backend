@@ -1,11 +1,6 @@
-// src/config/db.js
 const { Pool } = require('pg');
 require('dotenv').config();
 
-/**
- * Retorna un pool usando las credenciales del usuario autenticado
- * (modelo POS con credenciales dinámicas)
- */
 function getConnectionWithCredentials(user, password) {
   return new Pool({
     host: process.env.POS_HOST,
@@ -16,4 +11,6 @@ function getConnectionWithCredentials(user, password) {
   });
 }
 
-module.exports = { getConnectionWithCredentials };
+module.exports = {
+  getConnectionWithCredentials
+};
