@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const clienteRoutes = require('./routes/pos.cliente.routes');
+const categoriaRoutes = require('./routes/pos.categoria.routes');
 const authRoutes = require('./routes/pos.auth.routes');
 const materiaPrimaRoutes = require('./routes/pos.materiaprima.routes');
 const kardexMPRoutes = require('./routes/pos.kardexmp.routes');
@@ -48,12 +49,11 @@ app.use('/api/ecom/auth', appAuthRoutes);
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
 app.use('/api/pos/transaccion', transaccionRoutes);
 app.use('/api/ecom/ciudad', ciudadRoutes);
+app.use('/api/pos/categoria', categoriaRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
 });
-
-
 
 
 module.exports = app;
