@@ -2,15 +2,26 @@ const jwt = require('jsonwebtoken');
 const { getConnectionWithCredentials } = require('../config/db_pos.js');
 
 const login = async (req, res) => {
+  console.log('🔐 Backend - Login request received')
+  console.log('📝 Backend - Request body:', req.body)
+
   const { user, password } = req.body;
 
+  console.log('👤 Backend - User:', user)
+  console.log('🔒 Backend - Password provided:', !!password)
+
   if (!user || !password) {
+    console.log('❌ Backend - Missing user or password')
     return res.status(400).json({
       message: 'user y password son requeridos',
     });
   }
 
-  let pool;
+  // Para desarrollo: credenciales hardcodeadas
+  const validUsers = {
+    'admin': { password: 'admin123', role: 'admin' },
+    'user': { password: 'user123', role: 'user' }
+  };
 
   try {
     // Intentamos conectar a la BD con las credenciales que manda Postman
