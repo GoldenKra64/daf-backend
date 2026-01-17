@@ -53,9 +53,23 @@ const updateProveedor = async (pool, id, data) => {
 
 const getAllProveedor = async (pool) => {
     const query = `
-    SELECT * FROM proveedor
-    ORDER BY prv_razonsocial ASC;
+    SELECT 
+      p.prv_codigo,
+      p.prv_razonsocial,
+      p.prv_ruc,
+      p.prv_telefono,
+      p.prv_celular,
+      p.prv_mail,
+      p.prv_direccion,
+      p.prv_estado,
+      p.ct_codigo,
+      c.ct_descripcion AS ciudad_nombre
+    FROM proveedor p
+    LEFT JOIN ciudad c 
+      ON c.ct_codigo = p.ct_codigo
+    ORDER BY p.prv_razonsocial ASC;
   `;
+
     const result = await pool.query(query);
     return result.rows;
 };
