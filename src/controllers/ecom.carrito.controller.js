@@ -90,7 +90,23 @@ const deleteDetalle = async (req, res) => {
         carrito.crr_codigo,
         prd_codigo
     );
-    res.json({ message: "Producto eliminado del carrito" });
+
+
+    const carritoActualizado = await getCarritoByCodigo(
+      pool,
+      carrito.crr_codigo
+    );
+
+    const detalles = await getDetallesCarrito(
+      pool,
+      carrito.crr_codigo
+    );
+
+    res.json({
+        message: "Detalle eliminado con éxito",
+        carrito: carritoActualizado,
+        detalles,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error al eliminar producto" });
   }

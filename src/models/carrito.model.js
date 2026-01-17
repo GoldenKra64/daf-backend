@@ -33,10 +33,12 @@ const getDetallesCarrito = async (pool, crr_codigo) => {
   const result = await pool.query(
     `
     SELECT
-      prd_codigo,
-      pxca_cantidad,
-      pxca_subtotal
-    FROM productoxcarrito
+        pxca.prd_codigo,
+        p.prd_nombre,
+        pxca_cantidad,
+        pxca_subtotal
+    FROM productoxcarrito pxca
+    INNER JOIN producto p ON pxca.prd_codigo = p.prd_codigo
     WHERE crr_codigo = $1
     `,
     [crr_codigo]
