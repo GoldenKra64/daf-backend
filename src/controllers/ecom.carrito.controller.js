@@ -1,33 +1,87 @@
 const { getConnection } = require("../config/db_ecom.js");
 const { 
     getCarritoByEmail,
+    countDetallesCarrito,
+    countDetallesCarritoFilter,
     getDetallesCarrito,
     getCarritoByCodigo,
+    searchDetallesCarrito,
     updateCantidadProducto,
     deleteProductoCarrito } = require("../models/carrito.model.js");
 
 const getCarrito = async (req, res) => {
   try {
     const { email } = req.user;
-    const pool = await getConnection();
+    const page = Number(req.query.page) || 1;
 
+    const pool = await getConnection();
     const carrito = await getCarritoByEmail(pool, email);
+
+    const count = await countDetallesCarrito(pool, carrito.crr_codigo);
 
     if (!carrito) {
       return res.status(404).json({ message: "Carrito no encontrado" });
     }
 
     const detalles = await getDetallesCarrito(
-        pool,
-        carrito.crr_codigo
+      pool,
+      carrito.crr_codigo,
+      page
     );
 
     res.json({
-      carrito,
-      detalles,
+        page: page,
+        limit: Number(process.env.PAGINATION_LIMIT),
+        totalPages: Math.ceil(count.count / process.env.PAGINATION_LIMIT),
+        carrito,
+        detalles,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error al obtener carrito" });
+  }
+};
+
+const searchCarritoDetalles = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const { name } = req.query;
+    const page = Number(req.query.page) || 1;
+
+    if (!name) {
+      return res.status(400).json({ message: "Parámetro name requerido" });
+    }
+
+    const pool = await getConnection();
+    const carrito = await getCarritoByEmail(pool, email);
+
+    if (!carrito) {
+      return res.status(404).json({ message: "Carrito no encontrado" });
+    }
+
+    const count = await countDetallesCarritoFilter(
+        pool,
+        carrito.crr_codigo,
+        name
+    );
+
+    const detalles = await searchDetallesCarrito(
+        pool,
+        carrito.crr_codigo,
+        name,
+        page
+    );
+
+    res.json({
+        page,
+        limit: Number(process.env.PAGINATION_LIMIT),
+        totalPages: Math.ceil(count.count / process.env.PAGINATION_LIMIT),
+        filtros: { name },
+        detalles,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al buscar productos" });
   }
 };
 
@@ -36,15 +90,19 @@ const updateCantidad = async (req, res) => {
     const { email } = req.user;
     const { prd_codigo, cantidad } = req.body;
 
-    const pool = getConnection();
+    if (!prd_codigo || cantidad == null) {
+      return res.status(400).json({
+        message: "prd_codigo y cantidad son requeridos",
+      });
+    }
 
-    const carrito = await getCarritoByEmail(
-      pool,
-      email
-    );
+    const pool = await getConnection();
+    const carrito = await getCarritoByEmail(pool, email);
 
     if (!carrito) {
-      return res.status(404).json({ message: "Carrito no encontrado" });
+      return res.status(404).json({
+        message: "Carrito no encontrado",
+      });
     }
 
     await updateCantidadProducto(
@@ -54,22 +112,11 @@ const updateCantidad = async (req, res) => {
       cantidad
     );
 
-    const carritoActualizado = await getCarritoByCodigo(
-      pool,
-      carrito.crr_codigo
-    );
-
-    const detalles = await getDetallesCarrito(
-      pool,
-      carrito.crr_codigo
-    );
-
     res.json({
-      carrito: carritoActualizado,
-      detalles,
+      message: "Cantidad actualizada correctamente",
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({
       message: "Error al actualizar cantidad",
     });
@@ -81,23 +128,42 @@ const deleteDetalle = async (req, res) => {
     const { email } = req.user;
     const { prd_codigo } = req.params;
 
-    const pool = getConnection();
+    if (!prd_codigo) {
+      return res.status(400).json({
+        message: "prd_codigo es requerido",
+      });
+    }
 
+    const pool = await getConnection();
     const carrito = await getCarritoByEmail(pool, email);
 
+    if (!carrito) {
+      return res.status(404).json({
+        message: "Carrito no encontrado",
+      });
+    }
+
     await deleteProductoCarrito(
-        pool,
-        carrito.crr_codigo,
-        prd_codigo
+      pool,
+      carrito.crr_codigo,
+      prd_codigo
     );
-    res.json({ message: "Producto eliminado del carrito" });
+
+    res.json({
+      message: "Producto eliminado del carrito",
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error al eliminar producto" });
+    console.error(error);
+    res.status(500).json({
+      message: "Error al eliminar producto",
+    });
   }
 };
 
+
 module.exports = {
   getCarrito,
+  searchCarritoDetalles,
   updateCantidad,
   deleteDetalle,
 };

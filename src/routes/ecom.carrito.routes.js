@@ -10,6 +10,12 @@ router.get(
   carritoController.getCarrito
 );
 
+router.get(
+  "/name",
+  authMiddleware,
+  carritoController.searchCarritoDetalles
+);
+
 router.put(
   "/detalle",
   authMiddleware,
