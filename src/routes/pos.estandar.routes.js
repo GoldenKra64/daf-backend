@@ -7,6 +7,7 @@ const { verifyToken } = require('../middlewares/pos.auth.middleware.js');
 router.post('/', verifyToken, controller.create);
 router.get('/:est_cod', verifyToken, controller.getById);
 router.get('/', verifyToken, controller.getAll);
+router.get('/product/:prd_codigo', verifyToken, controller.getByProduct);
 
 router.put('/:est_cod/aprobar', verifyToken, controller.approveCabeceraEstandar);
 router.put('/:est_cod/anular', verifyToken, controller.anuCabeceraEstandar);

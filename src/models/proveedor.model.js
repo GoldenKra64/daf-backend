@@ -1,5 +1,5 @@
 const createProveedor = async (pool, data) => {
-    const query = `
+  const query = `
     INSERT INTO proveedor (
       prv_razonsocial, prv_ruc, prv_telefono, prv_celular, 
       prv_mail, prv_direccion, ct_codigo, prv_estado, prv_fecha_alta
@@ -7,23 +7,23 @@ const createProveedor = async (pool, data) => {
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;
   `;
-    const values = [
-        data.prv_razonsocial,
-        data.prv_ruc,
-        data.prv_telefono,
-        data.prv_celular,
-        data.prv_mail,
-        data.prv_direccion,
-        data.ct_codigo,
-        data.prv_estado || 'ACT',
-        data.prv_fecha_alta || new Date()
-    ];
-    const result = await pool.query(query, values);
-    return result.rows[0];
+  const values = [
+    data.prv_razonsocial,
+    data.prv_ruc,
+    data.prv_telefono,
+    data.prv_celular,
+    data.prv_mail,
+    data.prv_direccion,
+    data.ct_codigo,
+    'ACT',
+    null
+  ];
+  const result = await pool.query(query, values);
+  return result.rows[0];
 };
 
 const updateProveedor = async (pool, id, data) => {
-    const query = `
+  const query = `
     UPDATE proveedor
     SET prv_razonsocial = COALESCE($1, prv_razonsocial),
         prv_ruc = COALESCE($2, prv_ruc),
@@ -36,51 +36,67 @@ const updateProveedor = async (pool, id, data) => {
     WHERE prv_codigo = $9
     RETURNING *;
   `;
-    const values = [
-        data.prv_razonsocial,
-        data.prv_ruc,
-        data.prv_telefono,
-        data.prv_celular,
-        data.prv_mail,
-        data.prv_direccion,
-        data.ct_codigo,
-        data.prv_estado,
-        id
-    ];
-    const result = await pool.query(query, values);
-    return result.rows[0];
+  const values = [
+    data.prv_razonsocial,
+    data.prv_ruc,
+    data.prv_telefono,
+    data.prv_celular,
+    data.prv_mail,
+    data.prv_direccion,
+    data.ct_codigo,
+    data.prv_estado,
+    id
+  ];
+  const result = await pool.query(query, values);
+  return result.rows[0];
 };
 
 const getAllProveedor = async (pool) => {
-    const query = `
-    SELECT * FROM proveedor
-    ORDER BY prv_razonsocial ASC;
+  console.log('EJECUTANDO getAllProveedor SOLO ACT'); // 👈 AQUÍ
+  const query = `
+    SELECT 
+      p.prv_codigo,
+      p.prv_razonsocial,
+      p.prv_ruc,
+      p.prv_telefono,
+      p.prv_celular,
+      p.prv_mail,
+      p.prv_direccion,
+      p.prv_estado,
+      p.ct_codigo,
+      c.ct_descripcion AS ciudad_nombre
+    FROM proveedor p
+    LEFT JOIN ciudad c 
+      ON c.ct_codigo = p.ct_codigo
+      WHERE p.prv_estado = 'ACT'
+    ORDER BY p.prv_razonsocial ASC;
   `;
-    const result = await pool.query(query);
-    return result.rows;
+
+  const result = await pool.query(query);
+  return result.rows;
 };
 
 const getProveedorByID = async (pool, id) => {
-    const query = 'SELECT * FROM proveedor WHERE prv_codigo = $1';
-    const result = await pool.query(query, [id]);
-    return result.rows[0];
+  const query = 'SELECT * FROM proveedor WHERE prv_codigo = $1';
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
 };
 
 const deleteProveedor = async (pool, id) => {
-    const query = `
+  const query = `
     UPDATE proveedor
     SET prv_estado = 'INA'
     WHERE prv_codigo = $1
     RETURNING *;
     `;
-    const result = await pool.query(query, [id]);
-    return result.rows[0];
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
 };
 
 module.exports = {
-    createProveedor,
-    updateProveedor,
-    getAllProveedor,
-    getProveedorByID,
-    deleteProveedor
+  createProveedor,
+  updateProveedor,
+  getAllProveedor,
+  getProveedorByID,
+  deleteProveedor
 };

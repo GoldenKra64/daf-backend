@@ -8,7 +8,7 @@ const AuthModel = {
         ]);
       } else {
         await pool.query("CALL sp_registrar_usuario_cliente_nuevo($1,$2,$3,$4,$5,$6,$7,$8)", [
-          data.email, data.password, data.cli_ruc_ced, data.cliente.cli_nombre, data.cliente.ct_codigo, 
+          data.email, data.password, data.cli_ruc_ced, data.cliente.cli_nombre, data.cliente.ct_codigo,
           data.cliente.cli_telefono, data.cliente.cli_celular, data.cliente.cli_direccion
         ]);
       }
@@ -38,15 +38,21 @@ const AuthModel = {
   },
 
   verifyPassword: async (pool, data) => {
-    const sql = `
-      SELECT 1
-      FROM usuario_app
-      WHERE usr_email = $1
-        AND usr_password = encode(digest($2, 'sha256'), 'hex')
-    `;
-    const { rowCount } = await pool.query(sql, [data.email, data.password]);
-    return rowCount === 1;
+    const query = `
+    SELECT 1
+    FROM usuario_app
+    WHERE usr_email = $1
+      AND usr_password = encode(digest($2, 'sha256'), 'hex')
+      AND usr_estado = 'ACT'
+    LIMIT 1
+  `;
+
+    const values = [data.email, data.password];
+    const result = await pool.query(query, values);
+
+    return result.rowCount > 0;
   },
+
 
   updatePassword: async (pool, { email, newPassword }) => {
     const sql = `
@@ -86,7 +92,7 @@ const AuthModel = {
     return rows[0];
   },
   clientExists: async (pool, cli_ruc_ced) => {
-    const sql =  `
+    const sql = `
       SELECT 1 
       FROM cliente
       WHERE cli_ruc_ced = $1
@@ -105,7 +111,7 @@ const AuthModel = {
 
     const { rows } = await pool.query(sql, [cli_ruc_ced]);
     return rows[0];
-  } 
+  }
 };
 
 module.exports = { AuthModel };
