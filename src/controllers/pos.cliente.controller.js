@@ -20,15 +20,8 @@ const create = async (req, res) => {
     const pool = connectFromJWT(req);
 
     try {
-        // 2. Preparar datos por defecto
-        const ciudad = req.body.ct_codigo || 'CT001';
-        const celular = req.body.cli_celular || '0999999999';
-
-        // 3. Crear cliente usando el modelo
         const result = await modeloCliente.createCliente(pool, {
-            ...req.body,
-            ct_codigo: ciudad,
-            cli_celular: celular
+            ...req.body
         });
 
         res.status(201).json({
