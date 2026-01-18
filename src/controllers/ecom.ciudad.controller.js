@@ -16,9 +16,8 @@ const getAll = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  } finally {
-    await pool.end();
-  }
+  } 
+  // No pool.end() because it is a shared pool now
 };
 
 module.exports = {

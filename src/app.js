@@ -16,6 +16,7 @@ const carritoRoutes = require('./routes/ecom.carrito.routes');
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
 const ciudadRoutes = require('./routes/ecom.ciudad.routes');
+const ciudadRoutesPos = require('./routes/pos.ciudad.routes');
 const ordenCompraRoutes = require('./routes/pos.ordencompra.routes');
 
 
@@ -66,7 +67,7 @@ app.use('/api/ecom/ciudad', ciudadRoutes);
 app.use('/api/pos/categoria', categoriaRoutes);
 
 // ✅ CIUDAD PARA POS 
-app.use('/api/pos/ciudad', ciudadRoutes);
+app.use('/api/pos/ciudad', ciudadRoutesPos);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });

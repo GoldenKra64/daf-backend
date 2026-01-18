@@ -82,6 +82,23 @@ const getProveedorByID = async (pool, id) => {
   return result.rows[0];
 };
 
+const searchProveedor = async (pool, term) => {
+  const query = `
+    SELECT 
+      prv_codigo,
+      prv_razonsocial,
+      prv_ruc,
+      prv_estado
+    FROM proveedor
+    WHERE (prv_razonsocial ILIKE $1 OR prv_ruc ILIKE $1)
+      AND prv_estado = 'ACT'
+    ORDER BY prv_razonsocial
+    LIMIT 20
+  `;
+  const result = await pool.query(query, [`%${term}%`]);
+  return result.rows;
+};
+
 const deleteProveedor = async (pool, id) => {
   const query = `
     UPDATE proveedor
@@ -98,5 +115,6 @@ module.exports = {
   updateProveedor,
   getAllProveedor,
   getProveedorByID,
+  searchProveedor,
   deleteProveedor
 };
