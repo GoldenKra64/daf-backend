@@ -1,25 +1,16 @@
 // 1. Crear Cliente (Usando Stored Procedure con Auto-Code)
 const createCliente = async (pool, data) => {
-  // Nota: data.cli_codigo viene vacío, el SP lo genera.
-  const estado = data.cli_estado || 'ACT';
-  const celular = data.cli_celular || '0999999999';
-  const direccion = data.cli_direccion || 'Sin dirección';
-  const ciudad = data.ct_codigo || 'UIO';
-
-  // Usamos CALL sp_crear_cliente(NULL, ...)
-  // El primer parámetro es INOUT p_new_codigo.
   const query = `
         CALL sp_crear_cliente($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
   const values = [
-    ciudad, null, data.cli_nombre, data.cli_ruc_ced,
-    data.cli_telefono, data.cli_mail, direccion, celular
+    data.ct_codigo, null, data.cli_nombre, data.cli_ruc_ced,
+    data.cli_telefono, data.cli_mail, data.cli_direccion, data.cli_celular
   ];
 
   await pool.query(query, values);
 
-  // Retornamos un mensaje indicando que la BD generó el código
   return { ...data, cli_codigo: 'GENERATED_BY_DB', cli_estado: estado };
 };
 
@@ -32,14 +23,16 @@ const updateCliente = async (pool, id, data) => {
             cli_telefono = COALESCE($2, cli_telefono),
             cli_mail = COALESCE($3, cli_mail),
             cli_direccion = COALESCE($4, cli_direccion),
-            cli_celular = COALESCE($5, cli_celular)
-        WHERE cli_codigo = $6
+            cli_celular = COALESCE($5, cli_celular),
+            cli_ruc_ced = COALESCE($6, cli_ruc_ced),
+            ct_codigo = COALESCE($7, ct_codigo)
+        WHERE cli_codigo = $8
         RETURNING *;
     `;
 
   const values = [
     data.cli_nombre, data.cli_telefono, data.cli_mail,
-    data.cli_direccion, data.cli_celular, id
+    data.cli_direccion, data.cli_celular, data.cli_ruc_ced, data.ct_codigo, id
   ];
 
   const result = await pool.query(query, values);
