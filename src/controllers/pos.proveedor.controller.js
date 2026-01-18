@@ -1,5 +1,4 @@
-const pool = require('../config/db.proveedor');
-
+const { getConnectionWithCredentials } = require('../config/db_pos.js');
 
 const {
     createProveedor,
@@ -11,12 +10,15 @@ const {
 
 const { validateProveedorDTO } = require('../dtos/proveedor.dto');
 
+const connectFromJWT = (req) => {
+  const { usuario, password } = req.user;
+  return getConnectionWithCredentials(usuario, password);
+};
+
 /**
  * CREATE
  */
 const create = async (req, res) => {
-    console.log('🧪 CREATE /api/pos/proveedor');
-    console.log('🧪 BODY RECIBIDO:', JSON.stringify(req.body, null, 2));
     const errors = validateProveedorDTO(req.body, false);
 
     if (errors.length) {
@@ -24,20 +26,12 @@ const create = async (req, res) => {
     }
 
     try {
+        const pool = connectFromJWT(req);
         const result = await createProveedor(pool, req.body);
         res.status(201).json(result);
     }
     catch (error) {
-        console.error('ERROR CREATE PROVEEDOR:', error);
-
-        // 🔴 RUC duplicado
-        if (error.code === '23505' && error.constraint === 'uk_proveedor_prv_ruc') {
-            return res.status(409).json({
-                message: 'Ya existe un proveedor registrado con ese RUC'
-            });
-        }
-
-        // 🔴 Otros errores de BD
+        console.log(error.message);
         return res.status(500).json({
             message: 'Error interno al crear el proveedor'
         });
@@ -55,6 +49,7 @@ const update = async (req, res) => {
     }
 
     try {
+        const pool = connectFromJWT(req);
         const result = await updateProveedor(pool, req.params.id, req.body);
         res.status(200).json(result);
     } catch (error) {
@@ -68,6 +63,7 @@ const update = async (req, res) => {
  */
 const getAll = async (req, res) => {
     try {
+        const pool = connectFromJWT(req);
         const result = await getAllProveedor(pool);
         res.status(200).json(result);
     } catch (error) {
@@ -81,6 +77,7 @@ const getAll = async (req, res) => {
  */
 const getByID = async (req, res) => {
     try {
+        const pool = connectFromJWT(req);
         const result = await getProveedorByID(pool, req.params.id);
         if (!result) {
             return res.status(404).json({ message: 'Proveedor no encontrado' });
@@ -97,6 +94,7 @@ const getByID = async (req, res) => {
  */
 const remove = async (req, res) => {
     try {
+        const pool = connectFromJWT(req);
         await deleteProveedor(pool, req.params.id);
         res.status(204).send();
     } catch (error) {
