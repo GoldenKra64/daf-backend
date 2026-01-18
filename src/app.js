@@ -16,6 +16,9 @@ const carritoRoutes = require('./routes/ecom.carrito.routes');
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
 const ciudadRoutes = require('./routes/ecom.ciudad.routes');
+const ciudadRoutesPos = require('./routes/pos.ciudad.routes');
+const ordenCompraRoutes = require('./routes/pos.ordencompra.routes');
+
 
 const app = express();
 
@@ -51,6 +54,7 @@ app.use('/api/pos/cliente', clienteRoutes);
 app.use('/api/pos/materiaprima', materiaPrimaRoutes);
 app.use('/api/pos/estandar', estandarRoutes);
 app.use('/api/pos/kardexmp', kardexMPRoutes);
+app.use('/api/pos/ordencompra', ordenCompraRoutes);
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
@@ -63,7 +67,7 @@ app.use('/api/ecom/ciudad', ciudadRoutes);
 app.use('/api/pos/categoria', categoriaRoutes);
 
 // ✅ CIUDAD PARA POS 
-app.use('/api/pos/ciudad', ciudadRoutes);
+app.use('/api/pos/ciudad', ciudadRoutesPos);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
