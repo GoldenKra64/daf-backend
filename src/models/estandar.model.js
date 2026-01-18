@@ -191,6 +191,14 @@ const anuHeader = async (pool, est_cod) => {
   }
 }
 
+const getEstandaresByProductId = async (pool, prd_codigo) => {
+  const result = await pool.query(
+    `SELECT * FROM estandar WHERE prd_codigo = $1 AND est_estado = '${process.env.APPROVED_STATUS_DEPENDENT}'`,
+    [prd_codigo]
+  );
+  return result.rows;
+};
+
 module.exports = {
   createEstandar,
   getEstandarById,
@@ -198,5 +206,6 @@ module.exports = {
   getAllEstandares,
   deleteDetalle,
   approveHeader,
-  anuHeader
+  anuHeader,
+  getEstandaresByProductId
 };

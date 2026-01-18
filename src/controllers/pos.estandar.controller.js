@@ -121,6 +121,21 @@ const anuCabeceraEstandar = async (req, res) => {
   }
 }
 
+const getByProduct = async (req, res) => {
+  const pool = connectFromJWT(req);
+  const { prd_codigo } = req.params;
+
+  try {
+    const { getEstandaresByProductId } = require('../models/estandar.model');
+    const result = await getEstandaresByProductId(pool, prd_codigo);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  } finally {
+    await pool.end();
+  }
+};
+
 module.exports = {
   create,
   getById,
@@ -128,5 +143,6 @@ module.exports = {
   createDetalle,
   deleteDetalleById,
   approveCabeceraEstandar,
-  anuCabeceraEstandar
+  anuCabeceraEstandar,
+  getByProduct
 };

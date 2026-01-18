@@ -15,14 +15,17 @@ app.use(cors());
 app.use(express.json());
 
 // 3. DEFINIR LA URL BASE
+// RUTAS POS
+app.use('/api/pos/auth', require('./routes/pos.auth.routes'));
 app.use('/api/pos/cliente', clienteRoutes);
+app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
+app.use('/api/pos/transaccion', transaccionRoutes);
+app.use('/api/pos/producto', require('./routes/pos.producto.routes'));
+app.use('/api/pos/estandar', require('./routes/pos.estandar.routes'));
+app.use('/api/pos/kardex-producto', require('./routes/pos.kardexprod.routes'));
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
-
-// RUTAS TABLAS TIPO
-app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
-app.use('/api/pos/transaccion', transaccionRoutes);
 app.use('/api/ecom/ciudad', ciudadRoutes);
 
 // 4. Ruta de prueba raíz
