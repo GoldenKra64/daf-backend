@@ -3,11 +3,11 @@ const Joi = require('joi');
 const createProveedorSchema = Joi.object({
     prv_razonsocial: Joi.string()
         .min(7)
-        .max(255)
+        .max(120)
         .required()
         .messages({
             'string.empty': 'La razón social es obligatoria',
-            'string.min': 'La razón social debe tener al menos  caracteres'
+            'string.min': 'La razón social debe tener al menos 7 caracteres'
         }),
 
     prv_ruc: Joi.string()
@@ -21,22 +21,22 @@ const createProveedorSchema = Joi.object({
         }),
 
     prv_telefono: Joi.string()
-        .length(9)
-        .pattern(/^\d+$/)
-        .required()
-        .messages({
-            'string.empty': 'El teléfono es obligatorio',
-            'string.length': 'El teléfono debe tener exactamente 9 dígitos',
-            'string.pattern.base': 'El teléfono solo debe contener números'
-        }),
-
-    prv_celular: Joi.string()
         .length(10)
         .pattern(/^\d+$/)
         .required()
         .messages({
+            'string.empty': 'El teléfono es obligatorio',
+            'string.length': 'El teléfono debe tener exactamente 10 dígitos',
+            'string.pattern.base': 'El teléfono solo debe contener números'
+        }),
+
+    prv_celular: Joi.string()
+        .length(9)
+        .pattern(/^\d+$/)
+        .required()
+        .messages({
             'string.empty': 'El celular es obligatorio',
-            'string.length': 'El celular debe tener exactamente 10 dígitos',
+            'string.length': 'El celular debe tener exactamente 9 dígitos',
             'string.pattern.base': 'El celular solo debe contener números'
         }),
 
@@ -88,18 +88,18 @@ const updateProveedorSchema = Joi.object({
         }),
 
     prv_telefono: Joi.string()
-        .length(9)
+        .length(10)
         .pattern(/^\d+$/)
         .messages({
-            'string.length': 'El teléfono debe tener 9 dígitos',
+            'string.length': 'El teléfono debe tener 10 dígitos',
             'string.pattern.base': 'El teléfono solo debe contener números'
         }),
 
     prv_celular: Joi.string()
-        .length(10)
+        .length(9)
         .pattern(/^\d+$/)
         .messages({
-            'string.length': 'El celular debe tener 10 dígitos',
+            'string.length': 'El celular debe tener 9 dígitos',
             'string.pattern.base': 'El celular solo debe contener números'
         }),
 
@@ -125,13 +125,6 @@ const updateProveedorSchema = Joi.object({
 });
 
 const validateProveedorDTO = (data, isUpdate = false) => {
-    console.log('🧪 VALIDATE DTO');
-    console.log('→ isUpdate:', isUpdate);
-    console.log(
-        '→ SCHEMA:',
-        isUpdate ? 'updateProveedorSchema' : 'createProveedorSchema'
-    );
-    console.log('→ DATA:', JSON.stringify(data, null, 2))
     const schema = isUpdate ? updateProveedorSchema : createProveedorSchema;
     const { error } = schema.validate(data, { abortEarly: false, stripUnknown: true });
     return error ? error.details.map((err) => err.message) : [];
