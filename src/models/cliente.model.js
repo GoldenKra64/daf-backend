@@ -45,7 +45,7 @@ const getAllClientes = async (pool, page = 1) => {
   const offset = (page - 1) * limit;
 
   const query = `
-        SELECT * FROM public.cliente
+        SELECT * FROM public.cliente WHERE cli_estado = '${process.env.ACTIVE_STATUS_INDEPENDENT}'
         ORDER BY cli_nombre ASC
         LIMIT $1 OFFSET $2
     `;
@@ -74,14 +74,14 @@ const getClienteByName = async (pool, name) => {
 
 // 6. Eliminar (Borrado Lógico)
 const deleteCliente = async (pool, id) => {
-  const query = `UPDATE public.cliente SET cli_estado = 'INA', cli_fecha_alta = CURRENT_TIMESTAMP WHERE cli_codigo = $1`;
+  const query = `UPDATE public.cliente SET cli_estado = '${process.env.INACTIVE_STATUS_INDEPENDENT}', cli_fecha_alta = CURRENT_TIMESTAMP WHERE cli_codigo = $1`;
   await pool.query(query, [id]);
   return true;
 };
 
 // 7. Obtener para Selectores
 const getClienteForSelect = async (pool) => {
-  const query = `SELECT cli_codigo, cli_nombre FROM public.cliente WHERE cli_estado = 'ACT'`;
+  const query = `SELECT cli_codigo, cli_nombre FROM public.cliente WHERE cli_estado = '${process.env.ACTIVE_STATUS_INDEPENDENT}'`;
   const result = await pool.query(query);
   return result.rows;
 };
