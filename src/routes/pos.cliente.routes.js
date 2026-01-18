@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken } = require('../middlewares/pos.auth.middleware.js');
 const clienteController = require('../controllers/pos.cliente.controller');
 const { verifyToken } = require('../middlewares/pos.auth.middleware');
 
@@ -8,25 +9,14 @@ router.use(verifyToken);
 
 // Definición de rutas CRUD para Cliente
 
-// 1. Crear Cliente
-router.post('/', clienteController.create);
+router.post('/', verifyToken, clienteController.create);
 
-// 2. Obtener Todos (Paginado)
-router.get('/', clienteController.getAll);
+router.get('/', verifyToken, clienteController.getAll);
+router.get('/type', verifyToken, clienteController.getAsType);
+router.get('/search', verifyToken, clienteController.getByName);
+router.get('/:id', verifyToken, clienteController.getByID);
+router.put('/:id', verifyToken, clienteController.update);
 
-// 3. Tipos/Selectores (Debe ir antes de :id para evitar colisiones)
-router.get('/type', clienteController.getAsType);
-
-// 4. Búsqueda por Nombre (Debe ir antes de :id)
-router.get('/search', clienteController.getByName);
-
-// 5. Obtener por ID
-router.get('/:id', clienteController.getByID);
-
-// 6. Actualizar
-router.put('/:id', clienteController.update);
-
-// 7. Eliminar (Logico)
-router.delete('/:id', clienteController.remove);
+router.delete('/:id', verifyToken, clienteController.remove);
 
 module.exports = router;
