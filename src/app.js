@@ -20,6 +20,8 @@ const ciudadRoutesPos = require('./routes/pos.ciudad.routes');
 const ordenCompraRoutes = require('./routes/pos.ordencompra.routes');
 
 
+const pagosRoutes = require('./routes/ecom.pagos.routes');
+
 const app = express();
 
 let corsConfiguration = {
@@ -45,6 +47,7 @@ app.use('/api/pos/kardex-producto', require('./routes/pos.kardexprod.routes'));
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
+app.use('/api/ecom/pagos', pagosRoutes);
 
 // RUTAS POS
 app.use('/api/pos', authRoutes);
