@@ -17,6 +17,8 @@ const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
 const ciudadRoutes = require('./routes/ecom.ciudad.routes');
 
+const pagosRoutes = require('./routes/ecom.pagos.routes');
+
 const app = express();
 
 let corsConfiguration = {
@@ -42,6 +44,7 @@ app.use('/api/pos/kardex-producto', require('./routes/pos.kardexprod.routes'));
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
+app.use('/api/ecom/pagos', pagosRoutes);
 
 // RUTAS POS
 app.use('/api/pos', authRoutes);
