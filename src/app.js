@@ -12,6 +12,7 @@ const proveedorRoutes = require('./routes/pos.proveedor.routes');
 
 const appAuthRoutes = require('./routes/ecom.auth.routes');
 const carritoRoutes = require('./routes/ecom.carrito.routes');
+const ecomProductoRoutes = require('./routes/ecom.producto.routes');
 
 const unidadMedidaRoutes = require('./routes/pos.unidadmedida.routes');
 const transaccionRoutes = require('./routes/pos.transaccion.routes');
@@ -19,6 +20,8 @@ const ciudadRoutes = require('./routes/ecom.ciudad.routes');
 const ciudadRoutesPos = require('./routes/pos.ciudad.routes');
 const ordenCompraRoutes = require('./routes/pos.ordencompra.routes');
 
+
+const pagosRoutes = require('./routes/ecom.pagos.routes');
 
 const app = express();
 
@@ -45,6 +48,7 @@ app.use('/api/pos/kardex-producto', require('./routes/pos.kardexprod.routes'));
 
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
+app.use('/api/ecom/pagos', pagosRoutes);
 
 // RUTAS POS
 app.use('/api/pos', authRoutes);
@@ -59,6 +63,7 @@ app.use('/api/pos/ordencompra', ordenCompraRoutes);
 // Rutas e-com
 app.use('/api/ecom/auth', appAuthRoutes);
 app.use('/api/ecom/carrito', carritoRoutes);
+app.use('/api/ecom/producto', ecomProductoRoutes);
 
 // RUTAS TABLAS TIPO
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);

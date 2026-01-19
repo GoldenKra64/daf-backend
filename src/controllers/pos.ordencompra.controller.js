@@ -6,6 +6,8 @@ const {
   getAllOrdenCompra,
   getCountOrdenCompra,
   getOrdenCompraByProveedor,
+  searchOrdenCompraBySupplier,
+  getCountBySupplierSearch,
   upsertDetalleOC,
   deleteDetalleOC,
   aprobarOC,
@@ -50,15 +52,24 @@ const getAll = async (req, res) => {
   const pool = connectFromJWT(req);
   const page = parseInt(req.query.page) || 1;
   const estado = req.query.estado || null;
+  const searchTerm = req.query.q; // Parámetro de búsqueda
 
   try {
-    const result = await getAllOrdenCompra(pool, page, estado);
+    let result, count;
+
+    if (searchTerm) {
+      // Búsqueda por nombre o RUC de proveedor
+      result = await searchOrdenCompraBySupplier(pool, searchTerm, page, estado);
+      count = await getCountBySupplierSearch(pool, searchTerm, estado);
+    } else {
+      // Listado normal
+      result = await getAllOrdenCompra(pool, page, estado);
+      count = await getCountOrdenCompra(pool, estado);
+    }
 
     if (!result.length) {
       return res.status(404).json({ message: 'No se encontraron órdenes de compra' });
     }
-
-    const count = await getCountOrdenCompra(pool, estado);
 
     res.status(200).json({
       page,
