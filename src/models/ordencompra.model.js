@@ -114,6 +114,59 @@ const getOrdenCompraByProveedor = async (pool, prvCodigo, page = 1) => {
   return result.rows;
 };
 
+const searchOrdenCompraBySupplier = async (pool, term, page = 1, estado = null) => {
+  const limit = Number(process.env.PAGINATION_LIMIT) || 20;
+  const offset = (page - 1) * limit;
+
+  let params = [`%${term}%`];
+  let where = "WHERE (p.prv_razonsocial ILIKE $1 OR p.prv_ruc ILIKE $1)";
+  
+  if (estado) {
+    params.push(estado);
+    where += ` AND oc.oc_estado = $${params.length}`;
+  }
+
+  params.push(limit, offset);
+
+  const query = `
+    SELECT
+      oc.oc_codigo,
+      oc.prv_codigo,
+      oc.oc_fecha,
+      oc.oc_subtotal,
+      oc.oc_iva,
+      oc.oc_total,
+      oc.oc_estado
+    FROM ordencompra oc
+    INNER JOIN proveedor p ON oc.prv_codigo = p.prv_codigo
+    ${where}
+    ORDER BY oc.oc_fecha DESC
+    LIMIT $${params.length - 1} OFFSET $${params.length}
+  `;
+
+  const result = await pool.query(query, params);
+  return result.rows;
+};
+
+const getCountBySupplierSearch = async (pool, term, estado = null) => {
+  let params = [`%${term}%`];
+  let where = "WHERE (p.prv_razonsocial ILIKE $1 OR p.prv_ruc ILIKE $1)";
+  
+  if (estado) {
+    params.push(estado);
+    where += ` AND oc.oc_estado = $2`;
+  }
+
+  const query = `
+    SELECT COUNT(*)
+    FROM ordencompra oc
+    INNER JOIN proveedor p ON oc.prv_codigo = p.prv_codigo
+    ${where}
+  `;
+  
+  const result = await pool.query(query, params);
+  return result.rows[0].count;
+};
 
 const upsertDetalleOC = async (pool, data) => {
   const query = `
@@ -172,6 +225,8 @@ module.exports = {
   getAllOrdenCompra,
   getCountOrdenCompra,
   getOrdenCompraByProveedor,
+  searchOrdenCompraBySupplier,      // ← Nueva
+  getCountBySupplierSearch,         // ← Nueva
   upsertDetalleOC,
   deleteDetalleOC,
   aprobarOC,
