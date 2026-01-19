@@ -5,6 +5,7 @@ const {
     updateProveedor,
     getAllProveedor,
     getProveedorByID,
+    searchProveedor,
     deleteProveedor
 } = require('../models/proveedor.model');
 
@@ -90,6 +91,26 @@ const getByID = async (req, res) => {
 };
 
 /**
+ * SEARCH by Name/RUC
+ */
+const search = async (req, res) => {
+    const { q } = req.query; // ?q=...
+
+    if (!q) {
+        return res.status(400).json({ message: 'Parámetro q es requerido' });
+    }
+
+    try {
+        const pool = connectFromJWT(req);
+        const result = await searchProveedor(pool, q);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('ERROR SEARCH PROVEEDOR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
  * DELETE (soft o hard según modelo)
  */
 const remove = async (req, res) => {
@@ -108,5 +129,6 @@ module.exports = {
     update,
     getAll,
     getByID,
+    search,
     remove
 };

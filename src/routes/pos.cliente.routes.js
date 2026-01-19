@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middlewares/pos.auth.middleware.js');
 const clienteController = require('../controllers/pos.cliente.controller');
 
 // Middleware de protección para todas las rutas

@@ -99,13 +99,21 @@ const getProductoByID = async (pool, id) => {
 const deleteProducto = async (pool, id) => {
   const query = `
     UPDATE producto
-    SET prd_estado = '${process.env.INACTIVE_STATUS_INDEPENDENT}'
-    WHERE prd_codigo ILIKE $1
+    SET 
+      prd_estado = $1,
+      prd_fecha_alta = NOW()
+    WHERE prd_codigo = $2
+    RETURNING *
   `;
 
-  const result = await pool.query(query, [`%${id}%`]);
-  return result.rows;
+  const result = await pool.query(query, [
+    process.env.INACTIVE_STATUS_INDEPENDENT,
+    id
+  ]);
+
+  return result.rows[0]; // null/undefined si no encontró
 };
+
 
 const getCountProducto = async (pool) => {
   const query = `
