@@ -111,7 +111,7 @@ const deleteProducto = async (pool, id) => {
     id
   ]);
 
-  return result.rows[0]; // null/undefined si no encontró
+  return result.rows[0];
 };
 
 

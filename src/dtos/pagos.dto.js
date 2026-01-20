@@ -23,7 +23,8 @@ function luhnCheck(cardNumber) {
 const creditCardSchema = z
   .string()
   .trim()
-  .regex(/^\d{13,19}$/, "El número de tarjeta de crédito debe tener entre 13 y 19 dígitos");
+  .regex(/^\d{13,19}$/, "El número de tarjeta de crédito debe tener entre 13 y 19 dígitos")
+  .refine(luhnCheck, { message: "Número de tarjeta de crédito inválido" });
 
 const validateSchema = (creditCard) => {
     return creditCardSchema.parse(creditCard); 
