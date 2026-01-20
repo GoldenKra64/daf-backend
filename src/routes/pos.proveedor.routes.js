@@ -5,6 +5,7 @@ const controller = require('../controllers/pos.proveedor.controller');
 
 // ENDPOINTS
 router.post('/', verifyToken, controller.create);
+router.get('/search', verifyToken, controller.search); // ?q=... (Antes de :id)
 router.get('/', verifyToken, controller.getAll);
 router.get('/:id', verifyToken, controller.getByID);
 router.put('/:id', verifyToken, controller.update);
