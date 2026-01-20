@@ -8,8 +8,8 @@ const {
     addDetalleFactura,
     updateDetalleFactura,
     deleteDetalleFactura,
-    approveFactura,
-    annulFactura
+    aprobarFactura,
+    anularFactura
 } = require('../controllers/pos.factura.controller');
 
 const { verifyToken } = require('../middlewares/pos.auth.middleware');
@@ -28,17 +28,19 @@ router.get('/factura/:facCodigo', verifyToken, getFacturaByCodigo);
 router.post('/factura', verifyToken, createFactura);
 
 // Aprobar factura
-router.put('/factura/:facCodigo/aprobar', verifyToken, approveFactura);
+router.put('/factura/:facCodigo/aprobar', verifyToken, aprobarFactura);
+
 
 // Anular factura
-router.put('/factura/:facCodigo/anular', verifyToken, annulFactura);
+router.put('/factura/:facCodigo/anular', verifyToken, anularFactura);
 
 /* =====================================================
    FACTURAS - DETALLE
 ===================================================== */
 
 // Agregar producto al detalle
-router.post('/factura/:facCodigo/detalle', verifyToken, addDetalleFactura);
+router.post('/factura/detalle', verifyToken, addDetalleFactura);
+
 
 // Actualizar cantidad del detalle
 router.put('/factura/detalle/:pxfaCodigo', verifyToken, updateDetalleFactura);

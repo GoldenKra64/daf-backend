@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-
 const clienteRoutes = require('./routes/pos.cliente.routes');
 const categoriaRoutes = require('./routes/pos.categoria.routes');
 const authRoutes = require('./routes/pos.auth.routes');

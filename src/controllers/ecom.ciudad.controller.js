@@ -1,6 +1,6 @@
 const { getConnection } = require('../config/db_ecom.js');
 const {
-    getAllQuery,
+  getAllQuery,
 } = require('../models/ciudad.model.js');
 
 // READ ALL
@@ -11,7 +11,7 @@ const getAll = async (req, res) => {
     const result = await getAllQuery(pool);
 
     if (!result.length) {
-      return res.status(404).json({ message: 'No se encontraron ciudades' });
+      return res.status(200).json([]);
     }
     res.status(200).json(result);
   } catch (error) {
