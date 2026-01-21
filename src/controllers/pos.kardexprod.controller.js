@@ -15,31 +15,25 @@ const connectFromJWT = (req) => {
 };
 
 const create = async (req, res) => {
-    const pool = connectFromJWT(req);
+  const pool = connectFromJWT(req);
 
-    try {
-        const { prd_codigo, trn_cod, krd_cantidad, est_cod } = req.body;
-
-        const errors = validateKardexProdDTO(req.body);
-        if (errors.length > 0) {
-            return res.status(400).json({ message: errors.join(', ') });
-        }
-
-        const data = {
-            ...req.body,
-            usr_id: req.user.usuario
-        };
-
-        const result = await createKardexPrd(pool, data);
-        res.status(201).json(result);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
-    } finally {
-        await pool.end();
+  try {
+    const errors = validateKardexProdDTO(req.body);
+    if (errors.length > 0) {
+      return res.status(400).json({ message: errors.join(', ') });
     }
+
+    const result = await createKardexPrd(pool, req.body);
+    res.status(201).json(result);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  } finally {
+    await pool.end();
+  }
 };
+
 
 const getAll = async (req, res) => {
     const pool = connectFromJWT(req);
@@ -94,8 +88,23 @@ const getByProduct = async (req, res) => {
     }
 };
 
+const deleteKardex = async (req, res) => {
+    const pool = connectFromJWT(req);
+    const { id } = req.params;
+
+    try {
+        await require('../models/kardexprod.model').deleteKardexPrd(pool, id);
+        res.status(200).json({ message: 'Registro eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    } finally {
+        await pool.end();
+    }
+};
+
 module.exports = {
     create,
     getAll,
-    getByProduct
+    getByProduct,
+    deleteKardex
 };
