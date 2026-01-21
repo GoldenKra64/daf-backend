@@ -19,6 +19,14 @@ const connectFromJWT = (req) => {
 
 // CREATE
 const create = async (req, res) => {
+  if (req.body.prd_precio_venta !== undefined) {
+    req.body.prd_precio_venta = Number(req.body.prd_precio_venta);
+  }
+
+  if (req.body.prd_stock !== undefined) {
+    req.body.prd_stock = Number(req.body.prd_stock);
+  }
+
   const errors = validateProductoDTO(req.body);
 
   if (errors.length) {
@@ -28,6 +36,9 @@ const create = async (req, res) => {
   const pool = connectFromJWT(req);
 
   try {
+    if (req.file) {
+      req.body.prd_img = `http://localhost:3000/images/${req.file.filename}`;
+    }
     const result = await createProducto(pool, req.body);
     res.status(201).json(result);
   } catch (error) {
@@ -39,6 +50,13 @@ const create = async (req, res) => {
 
 // UPDATE
 const update = async (req, res) => {
+  if (req.body.prd_precio_venta !== undefined) {
+    req.body.prd_precio_venta = Number(req.body.prd_precio_venta);
+  }
+
+  if (req.body.prd_stock !== undefined) {
+    req.body.prd_stock = Number(req.body.prd_stock);
+  }
   const errors = validateProductoDTO(req.body, true);
 
   if (errors.length) {
@@ -48,6 +66,10 @@ const update = async (req, res) => {
   const pool = connectFromJWT(req);
 
   try {
+    if (req.file) {
+      req.body.prd_img = `http://localhost:3000/images/${req.file.filename}`;
+    }
+
     const result = await updateProducto(pool, req.params.id, req.body);
     res.status(200).json(result);
   } catch (error) {
