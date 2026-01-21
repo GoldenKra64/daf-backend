@@ -43,7 +43,6 @@ const AuthModel = {
     FROM usuario_app
     WHERE usr_email = $1
       AND usr_password = encode(digest($2, 'sha256'), 'hex')
-      AND usr_estado = 'ACT'
     LIMIT 1
   `;
 

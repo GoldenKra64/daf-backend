@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const clienteRoutes = require('./routes/pos.cliente.routes');
 const categoriaRoutes = require('./routes/pos.categoria.routes');
@@ -69,10 +70,11 @@ app.use('/api/ecom/producto', ecomProductoRoutes);
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
 app.use('/api/pos/transaccion', transaccionRoutes);
 app.use('/api/ecom/ciudad', ciudadRoutes);
-app.use('/api/pos/categoria', categoriaRoutes);
-
-// ✅ CIUDAD PARA POS 
+app.use('/api/pos/categoria', categoriaRoutes); 
 app.use('/api/pos/ciudad', ciudadRoutesPos);
+
+// IMAGES
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
