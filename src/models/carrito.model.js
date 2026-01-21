@@ -1,3 +1,25 @@
+const upsertDetalles = async (
+  pool,
+  crr_codigo,
+  prd_codigo,
+) => {
+  await pool.query(
+    `
+    INSERT INTO productoxcarrito (
+      crr_codigo,
+      prd_codigo,
+      pxca_cantidad
+    )
+    VALUES ($1, $2, 1)
+    ON CONFLICT (crr_codigo, prd_codigo)
+    DO UPDATE
+    SET
+      pxca_cantidad = productoxcarrito.pxca_cantidad + 1
+    `,
+    [crr_codigo, prd_codigo]
+  );
+};
+
 const countDetallesCarrito = async (pool, crr_codigo) => {
     const result = await pool.query(`
         SELECT COUNT(*) 
@@ -155,6 +177,7 @@ const deleteProductoCarrito = async (pool, crr_codigo, prd_codigo) => {
 };
 
 module.exports = {
+    upsertDetalles,
     getCarritoByCodigo,
     getCarritoByEmail,
     getDetallesCarrito,
