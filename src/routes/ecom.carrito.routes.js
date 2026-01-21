@@ -4,6 +4,12 @@ const router = express.Router();
 const authMiddleware = require("../middlewares/auth.middleware.js");
 const carritoController = require("../controllers/ecom.carrito.controller.js");
 
+router.post(
+  "/",
+  authMiddleware,
+  carritoController.addProductoOnCarrito
+);
+
 router.get(
   "/",
   authMiddleware,
