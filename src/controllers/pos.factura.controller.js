@@ -46,6 +46,9 @@ const getFacturaByCodigo = async (req, res) => {
    3️⃣ CREAR FACTURA (PEN)
 ===================================================== */
 const createFactura = async (req, res) => {
+    console.log('HEADERS:', req.headers['content-type'])
+    console.log('REQ.BODY:', req.body)
+
     try {
         const { cli_codigo, fac_descripcion } = req.body;
         const { user, password } = req.user;
@@ -70,26 +73,65 @@ const createFactura = async (req, res) => {
 ===================================================== */
 const addDetalleFactura = async (req, res) => {
     try {
+        console.log('--- ADD DETALLE FACTURA ---');
+
+        console.log('REQ.BODY:', req.body);
+        console.log('REQ.USER:', req.user);
+
         const { fac_codigo, prd_codigo, pxfa_cantidad } = req.body;
         const { user, password } = req.user;
 
+        console.log('fac_codigo:', fac_codigo);
+        console.log('prd_codigo:', prd_codigo);
+        console.log('pxfa_cantidad:', pxfa_cantidad);
+
         const pool = getConnectionWithCredentials(user, password);
 
+        // 🔎 Contexto REAL de la conexión
+        const ctx = await pool.query(`
+      SELECT current_database() AS db, current_user AS usr
+    `);
+        console.log('DB CONTEXT:', ctx.rows[0]);
+
+        console.log('➡️ Ejecutando insertDetalleFactura...');
         await FacturaModel.insertDetalleFactura(pool, {
             fac_codigo,
             prd_codigo,
             pxfa_cantidad
         });
+        console.log('✅ insertDetalleFactura ejecutado');
 
+        // 🔎 Verificación inmediata en BD (MISMA conexión)
+        const check = await pool.query(
+            `SELECT * 
+         FROM detalle_factura 
+        WHERE fac_codigo = $1 
+        ORDER BY pxfa_codigo DESC`,
+            [fac_codigo]
+        );
+        console.log('ROWS AFTER INSERT:', check.rows);
+
+        console.log('➡️ Recalculando totales...');
         await FacturaModel.recalcTotalesFactura(pool, fac_codigo);
+        console.log('✅ Totales recalculados');
 
-        return res.json({ message: 'Detalle agregado correctamente' });
+        const fullData = await FacturaModel.getFacturaByCodigo(pool, fac_codigo);
+
+        return res.json({
+            message: 'Detalle agregado correctamente',
+            factura: fullData.factura,
+            detalle: fullData.detalle
+        });
 
     } catch (error) {
-        console.error('ERROR ADD DETALLE:', error);
+        if (error.code === '23505') {
+            return res.status(400).json({ message: 'Producto ya en lista' });
+        }
+        console.error('❌ ERROR ADD DETALLE:', error);
         return res.status(400).json({ message: error.message });
     }
 };
+
 
 /* =====================================================
    5️⃣ APROBAR FACTURA (TRANSACCIONAL)
@@ -105,7 +147,10 @@ const aprobarFactura = async (req, res) => {
         await client.query('BEGIN');
 
         // 1. Insertar transacción (EGR)
-        const trnCod = await FacturaModel.insertTransaccion(client, facCodigo);
+        const trnCod = await FacturaModel.insertTransaccion(client, {
+            tipo: 'EGR',
+            referencia: facCodigo
+        });
 
         // 2. Obtener detalle
         const detalles = await FacturaModel.getDetalleFactura(client, facCodigo);
@@ -128,7 +173,8 @@ const aprobarFactura = async (req, res) => {
             await FacturaModel.insertKardexProducto(client, {
                 trn_cod: trnCod,
                 prd_codigo: item.prd_codigo,
-                cantidad: item.pxfa_cantidad
+                cantidad: item.pxfa_cantidad,
+                accion: 'EGR'
             });
         }
 
@@ -139,7 +185,13 @@ const aprobarFactura = async (req, res) => {
         }
 
         await client.query('COMMIT');
-        res.json({ message: 'Factura aprobada correctamente' });
+
+        const fullData = await FacturaModel.getFacturaByCodigo(pool, facCodigo);
+        res.json({
+            message: 'Factura aprobada correctamente',
+            factura: fullData.factura,
+            detalle: fullData.detalle
+        });
 
     } catch (error) {
         await client.query('ROLLBACK');
@@ -203,7 +255,12 @@ const updateDetalleFactura = async (req, res) => {
 
         await client.query('COMMIT');
 
-        return res.json({ message: 'Detalle actualizado correctamente' });
+        const fullData = await FacturaModel.getFacturaByCodigo(pool, updated.fac_codigo);
+        return res.json({
+            message: 'Detalle actualizado correctamente',
+            factura: fullData.factura,
+            detalle: fullData.detalle
+        });
 
     } catch (error) {
         await client.query('ROLLBACK');
@@ -239,7 +296,13 @@ const deleteDetalleFactura = async (req, res) => {
         }
 
         await client.query('COMMIT');
-        return res.json({ message: 'Detalle eliminado correctamente' });
+
+        const fullData = await FacturaModel.getFacturaByCodigo(pool, facCodigo);
+        return res.json({
+            message: 'Detalle eliminado correctamente',
+            factura: fullData.factura,
+            detalle: fullData.detalle
+        });
     } catch (error) {
         await client.query('ROLLBACK');
         return res.status(500).json({ message: 'Error interno al eliminar detalle' });

@@ -38,7 +38,8 @@ async function getFacturaByCodigo(pool, facCodigo) {
       f.fac_total,
       f.fac_descripcion,
       c.cli_codigo,
-      c.cli_nombre
+      c.cli_nombre,
+      c.cli_ruc_ced
     FROM factura f
     JOIN cliente c ON c.cli_codigo = f.cli_codigo
     WHERE f.fac_codigo = $1
@@ -124,7 +125,7 @@ async function insertDetalleFactura(pool, data) {
     FROM producto p
     JOIN factura f ON f.fac_codigo = $2
     WHERE p.prd_codigo = $3
-      AND f.fac_estado = 'PEN'
+      AND TRIM(f.fac_estado) = 'PEN'
   `;
   await pool.query(query, [
     data.pxfa_cantidad, // $1
@@ -149,7 +150,7 @@ async function recalcTotalesFactura(pool, facCodigo) {
         WHERE d.fac_codigo = f.fac_codigo
       ), 0)
     WHERE f.fac_codigo = $1
-      AND f.fac_estado = 'PEN'
+      AND TRIM(f.fac_estado) = 'PEN'
   `;
   await pool.query(query, [facCodigo]);
 }
@@ -178,7 +179,7 @@ async function aprobarFactura(pool, facCodigo) {
     UPDATE factura
     SET fac_estado = 'APR'
     WHERE fac_codigo = $1
-      AND fac_estado = 'PEN'
+      AND TRIM(fac_estado) = 'PEN'
   `;
   const { rowCount } = await pool.query(query, [facCodigo]);
   return rowCount;
@@ -210,8 +211,6 @@ async function insertTransaccion(client, { tipo, referencia }) {
 
   return rows[0].trn_cod;
 }
-
-
 
 
 async function insertKardexProducto(pool, data) {
@@ -268,7 +267,7 @@ SET
 FROM factura f
 WHERE d.pxfa_codigo = $3
   AND f.fac_codigo = d.fac_codigo
-  AND f.fac_estado = 'PEN'
+  AND TRIM(f.fac_estado) = 'PEN'
 RETURNING d.fac_codigo;
 
   `;
@@ -290,8 +289,8 @@ async function deleteDetalleFactura(client, pxfaCodigo) {
     SELECT f.fac_codigo
     FROM detalle_factura d
     JOIN factura f ON f.fac_codigo = d.fac_codigo
-    WHERE d.pxfa_codigo = $1
-      AND f.fac_estado = 'PEN'
+     WHERE TRIM(d.pxfa_codigo) = TRIM($1)
+      AND TRIM(f.fac_estado) = 'PEN' 
   `;
 
   const facResult = await client.query(facQuery, [pxfaCodigo]);
@@ -301,9 +300,12 @@ async function deleteDetalleFactura(client, pxfaCodigo) {
 
   const deleteQuery = `
     DELETE FROM detalle_factura
-    WHERE pxfa_codigo = $1
+    WHERE TRIM(pxfa_codigo) = TRIM($1)
+    RETURNING fac_codigo;
   `;
-  await client.query(deleteQuery, [pxfaCodigo]);
+  const delResult = await client.query(deleteQuery, [pxfaCodigo]);
+  if (delResult.rowCount === 0) return null;
+
 
   await recalcTotalesFactura(client, facCodigo);
 
@@ -317,7 +319,7 @@ async function getFacCodigoByPxfa(client, pxfaCodigo) {
     `
         SELECT fac_codigo
         FROM detalle_factura
-        WHERE pxfa_codigo = $1
+        WHERE TRIM(pxfa_codigo) = TRIM($1)
         `,
     [pxfaCodigo]
   );
@@ -382,7 +384,7 @@ async function updateEstadoFacturaANU(pool, facCodigo) {
     UPDATE factura
     SET fac_estado = 'ANU'
     WHERE fac_codigo = $1
-      AND fac_estado = 'PEN'
+      AND TRIM(fac_estado) = 'PEN'
     RETURNING fac_codigo
   `;
   const result = await pool.query(query, [facCodigo]);

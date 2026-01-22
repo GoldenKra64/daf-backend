@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
+router.use(express.json());
 
 const {
-    getAllFacturas,
-    getFacturaByCodigo,
-    createFactura,
-    addDetalleFactura,
-    updateDetalleFactura,
-    deleteDetalleFactura,
-    aprobarFactura,
-    anularFactura
+   getAllFacturas,
+   getFacturaByCodigo,
+   createFactura,
+   addDetalleFactura,
+   updateDetalleFactura,
+   deleteDetalleFactura,
+   aprobarFactura,
+   anularFactura
 } = require('../controllers/pos.factura.controller');
 
 const { verifyToken } = require('../middlewares/pos.auth.middleware');
