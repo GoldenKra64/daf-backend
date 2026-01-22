@@ -1,14 +1,40 @@
 const { getConnection } = require("../config/db_ecom.js");
 const { 
-    getCarritoByEmail,
-    countDetallesCarrito,
-    countDetallesCarritoFilter,
-    getDetallesCarrito,
-    getCarritoByCodigo,
-    searchDetallesCarrito,
-    updateCantidadProducto,
-    deleteProductoCarrito } = require("../models/carrito.model.js");
+  upsertDetalles,
+  getCarritoByEmail,
+  countDetallesCarrito,
+  countDetallesCarritoFilter,
+  getDetallesCarrito,
+  searchDetallesCarrito,
+  updateCantidadProducto,
+  deleteProductoCarrito } = require("../models/carrito.model.js");
 
+const addProductoOnCarrito = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const { prd_codigo } = req.body;
+    const pool = await getConnection();
+    const carrito = await getCarritoByEmail(pool, email);
+
+    if (!carrito) {
+      return res.status(404).json({
+        message: "Carrito no encontrado",
+      });
+    }
+
+    await upsertDetalles(pool, carrito.crr_codigo, prd_codigo);
+
+    res.status(201).json({
+      message: "Producto añadido al carrito",
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Error al añadir el producto al carrito",
+    });
+  }
+}
 const getCarrito = async (req, res) => {
   try {
     const { email } = req.user;
@@ -162,6 +188,7 @@ const deleteDetalle = async (req, res) => {
 
 
 module.exports = {
+  addProductoOnCarrito,
   getCarrito,
   searchCarritoDetalles,
   updateCantidad,

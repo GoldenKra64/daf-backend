@@ -27,7 +27,6 @@ const createProducto = async (pool, data) => {
 
   const result = await pool.query(query, values);
 
-  // normalmente: { p_prd_codigo: 'PD00000001' }
   return result.rows[0];
 };
 

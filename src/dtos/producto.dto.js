@@ -41,13 +41,13 @@ const validateProductoDTO = (data, isUpdate = false) => {
 
   if (!isUpdate || data.prd_precio_venta !== undefined) {
     if (typeof data.prd_precio_venta !== 'number' || data.prd_precio_venta < 0) {
-      errors.push('prd_precio_venta debe ser numérico y mayor o igual a 0');
+      errors.push('prd_precio_venta debe ser numérico y mayor a 0');
     }
   }
 
   if (!isUpdate || data.prd_stock !== undefined) {
     if (!Number.isInteger(data.prd_stock) || data.prd_stock < 0) {
-      errors.push('prd_stock debe ser entero y mayor o igual a 0');
+      errors.push('prd_stock debe ser entero y mayor a 0');
     }
   }
 
