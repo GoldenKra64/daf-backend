@@ -4,6 +4,7 @@ const {
     createProveedor,
     updateProveedor,
     getAllProveedor,
+    countAllProveedor,
     getProveedorByID,
     searchProveedor,
     deleteProveedor
@@ -83,10 +84,25 @@ const update = async (req, res) => {
  * GET ALL
  */
 const getAll = async (req, res) => {
+    const { page = 1, limit = 10, search = '' } = req.query;
+    const offset = (page - 1) * limit;
+
     const pool = connectFromJWT(req);
     try {
-        const result = await getAllProveedor(pool);
-        res.status(200).json(result);
+        const [proveedores, total] = await Promise.all([
+            getAllProveedor(pool, parseInt(limit), parseInt(offset), search),
+            countAllProveedor(pool, search)
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        res.status(200).json({
+            data: proveedores,
+            total,
+            page: parseInt(page),
+            totalPages,
+            limit: parseInt(limit)
+        });
     } catch (error) {
         console.error('ERROR GET ALL PROVEEDOR:', error);
         res.status(500).json({ message: 'Error al obtener listado', detail: error.message });

@@ -51,8 +51,8 @@ const updateProveedor = async (pool, id, data) => {
   return result.rows[0];
 };
 
-const getAllProveedor = async (pool) => {
-  console.log('EJECUTANDO getAllProveedor SOLO ACT'); // 👈 AQUÍ
+const getAllProveedor = async (pool, limit = 10, offset = 0, search = '') => {
+  const searchTerm = `%${search.toLowerCase().trim()}%`;
   const query = `
     SELECT 
       p.prv_codigo,
@@ -68,12 +68,26 @@ const getAllProveedor = async (pool) => {
     FROM proveedor p
     LEFT JOIN ciudad c 
       ON c.ct_codigo = p.ct_codigo
-      WHERE p.prv_estado = 'ACT'
-    ORDER BY p.prv_razonsocial ASC;
+    WHERE p.prv_estado = 'ACT'
+      AND (LOWER(p.prv_razonsocial) LIKE $3 OR p.prv_ruc LIKE $3)
+    ORDER BY p.prv_razonsocial ASC
+    LIMIT $1 OFFSET $2;
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [limit, offset, searchTerm]);
   return result.rows;
+};
+
+const countAllProveedor = async (pool, search = '') => {
+  const searchTerm = `%${search.toLowerCase().trim()}%`;
+  const query = `
+    SELECT COUNT(*) 
+    FROM proveedor p
+    WHERE p.prv_estado = 'ACT'
+      AND (LOWER(p.prv_razonsocial) LIKE $1 OR p.prv_ruc LIKE $1);
+  `;
+  const { rows } = await pool.query(query, [searchTerm]);
+  return parseInt(rows[0].count);
 };
 
 const getProveedorByID = async (pool, id) => {
@@ -114,6 +128,7 @@ module.exports = {
   createProveedor,
   updateProveedor,
   getAllProveedor,
+  countAllProveedor,
   getProveedorByID,
   searchProveedor,
   deleteProveedor
