@@ -10,7 +10,7 @@ const kardexMPRoutes = require('./routes/pos.kardexmp.routes');
 const estandarRoutes = require('./routes/pos.estandar.routes');
 const productoRoutes = require('./routes/pos.producto.routes');
 const proveedorRoutes = require('./routes/pos.proveedor.routes');
-
+const facturaRoutes = require('./routes/pos.factura.routes.js');
 const appAuthRoutes = require('./routes/ecom.auth.routes');
 const carritoRoutes = require('./routes/ecom.carrito.routes');
 const ecomProductoRoutes = require('./routes/ecom.producto.routes');
@@ -53,6 +53,7 @@ app.use('/api/ecom/pagos', pagosRoutes);
 
 // RUTAS POS
 app.use('/api/pos', authRoutes);
+app.use('/api/pos', facturaRoutes);
 app.use('/api/pos/producto', productoRoutes);
 app.use('/api/pos/proveedor', proveedorRoutes);
 app.use('/api/pos/cliente', clienteRoutes);
@@ -70,7 +71,7 @@ app.use('/api/ecom/producto', ecomProductoRoutes);
 app.use('/api/pos/unidadmedida', unidadMedidaRoutes);
 app.use('/api/pos/transaccion', transaccionRoutes);
 app.use('/api/ecom/ciudad', ciudadRoutes);
-app.use('/api/pos/categoria', categoriaRoutes); 
+app.use('/api/pos/categoria', categoriaRoutes);
 app.use('/api/pos/ciudad', ciudadRoutesPos);
 
 // IMAGES
