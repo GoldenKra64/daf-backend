@@ -4,7 +4,6 @@ const {
     createProveedor,
     updateProveedor,
     getAllProveedor,
-    countAllProveedor,
     getProveedorByID,
     searchProveedor,
     deleteProveedor
