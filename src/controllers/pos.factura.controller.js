@@ -6,8 +6,8 @@ const FacturaModel = require('../models/factura.model');
 ===================================================== */
 const getAllFacturas = async (req, res) => {
     try {
-        const { user, password } = req.user;
-        const pool = getConnectionWithCredentials(user, password);
+        const { usuario, password } = req.user;
+        const pool = getConnectionWithCredentials(usuario, password);
 
         // Paginación
         const page = parseInt(req.query.page) || 1;
@@ -29,7 +29,7 @@ const getAllFacturas = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Error al obtener facturas' });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -40,8 +40,8 @@ const getFacturaByCodigo = async (req, res) => {
     const { facCodigo } = req.params;
 
     try {
-        const { user, password } = req.user;
-        const pool = getConnectionWithCredentials(user, password);
+        const { usuario, password } = req.user;
+        const pool = getConnectionWithCredentials(usuario, password);
 
         const factura = await FacturaModel.getFacturaByCodigo(pool, facCodigo);
         if (!factura) {
@@ -65,9 +65,9 @@ const createFactura = async (req, res) => {
 
     try {
         const { cli_codigo, fac_descripcion } = req.body;
-        const { user, password } = req.user;
+        const { usuario, password } = req.user;
 
-        const pool = getConnectionWithCredentials(user, password);
+        const pool = getConnectionWithCredentials(usuario, password);
 
         const result = await FacturaModel.createFactura(pool, {
             cli_codigo,
@@ -88,9 +88,9 @@ const createFactura = async (req, res) => {
 const addDetalleFactura = async (req, res) => {
     try {
         const { fac_codigo, prd_codigo, pxfa_cantidad } = req.body;
-        const { user, password } = req.user;
+        const { usuario, password } = req.user;
 
-        const pool = getConnectionWithCredentials(user, password);
+        const pool = getConnectionWithCredentials(usuario, password);
 
         // 🔎 Contexto REAL de la conexión
         const ctx = await pool.query(`
@@ -136,9 +136,9 @@ const addDetalleFactura = async (req, res) => {
 ===================================================== */
 const aprobarFactura = async (req, res) => {
     const { facCodigo } = req.params;
-    const { user, password } = req.user;
+    const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(user, password);
+    const pool = getConnectionWithCredentials(usuario, password);
 
     try {
         // Toda la lógica de negocio (Referencia, Kardex, Stock, Estado) 
@@ -179,9 +179,9 @@ const aprobarFactura = async (req, res) => {
 ===================================================== */
 const anularFactura = async (req, res) => {
     const { facCodigo } = req.params;
-    const { user, password } = req.user;
+    const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(user, password);
+    const pool = getConnectionWithCredentials(usuario, password);
 
     try {
         // Lógica delegada al SP en BD
@@ -214,9 +214,9 @@ const anularFactura = async (req, res) => {
 const updateDetalleFactura = async (req, res) => {
     const { pxfaCodigo } = req.params;
     const { pxfa_cantidad } = req.body;
-    const { user, password } = req.user;
+    const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(user, password);
+    const pool = getConnectionWithCredentials(usuario, password);
     const client = await pool.connect();
 
     try {
@@ -259,8 +259,8 @@ const updateDetalleFactura = async (req, res) => {
 const deleteDetalleFactura = async (req, res) => {
     const { pxfaCodigo } = req.params;
 
-    const { user, password } = req.user;
-    const pool = getConnectionWithCredentials(user, password);
+    const { usuario, password } = req.user;
+    const pool = getConnectionWithCredentials(usuario, password);
     const client = await pool.connect();
 
     try {
@@ -296,9 +296,9 @@ const deleteDetalleFactura = async (req, res) => {
 ===================================================== */
 const deleteFactura = async (req, res) => {
     const { facCodigo } = req.params;
-    const { user, password } = req.user;
+    const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(user, password);
+    const pool = getConnectionWithCredentials(usuario, password);
 
     try {
         const deleted = await FacturaModel.deleteFactura(pool, facCodigo);

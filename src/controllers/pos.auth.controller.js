@@ -2,26 +2,13 @@ const jwt = require('jsonwebtoken');
 const { getConnectionWithCredentials } = require('../config/db_pos.js');
 
 const login = async (req, res) => {
-  console.log('🔐 Backend - Login request received')
-  console.log('📝 Backend - Request body:', req.body)
-
   const { user, password } = req.body;
 
-  console.log('👤 Backend - User:', user)
-  console.log('🔒 Backend - Password provided:', !!password)
-
   if (!user || !password) {
-    console.log('❌ Backend - Missing user or password')
     return res.status(400).json({
       message: 'user y password son requeridos',
     });
   }
-
-  // Para desarrollo: credenciales hardcodeadas
-  const validUsers = {
-    'admin': { password: 'admin123', role: 'admin' },
-    'user': { password: 'user123', role: 'user' }
-  };
 
   try {
     // Intentamos conectar a la BD con las credenciales que manda Postman
@@ -47,11 +34,11 @@ const login = async (req, res) => {
         usuario: user,
         password: password,
         roles: roles,
-        role: roles[0] || 'user', // Restauramos compatibilidad singular
+        role: roles[0] || 'user',
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: process.env.JWT_EXPIRES_IN || '8h',
+        expiresIn: process.env.JWT_EXPIRES_IN,
       }
     );
 
@@ -62,12 +49,9 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    // --- AQUÍ ESTÁ EL CHIVATO PARA VER EL ERROR ---
-    console.log("❌ ERROR REAL AL CONECTAR:", error.message);
-
     return res.status(401).json({
       message: 'Credenciales incorrectas o error de conexión',
-      detail: error.message // Esto te mostrará el error técnico en Postman
+      detail: error.message
     });
 
   } finally {
