@@ -4,6 +4,7 @@ const {
     createProveedor,
     updateProveedor,
     getAllProveedor,
+    countAllProveedor,
     getProveedorByID,
     searchProveedor,
     deleteProveedor
@@ -12,8 +13,10 @@ const {
 const { validateProveedorDTO } = require('../dtos/proveedor.dto');
 
 const connectFromJWT = (req) => {
-  const { usuario, password } = req.user;
-  return getConnectionWithCredentials(usuario, password);
+    // Soportar ambas variantes del payload (user o usuario)
+    const usuario = req.user.usuario || req.user.user;
+    const password = req.user.password;
+    return getConnectionWithCredentials(usuario, password);
 };
 
 /**
@@ -26,18 +29,34 @@ const create = async (req, res) => {
         return res.status(400).json({ errors });
     }
 
+    const pool = connectFromJWT(req);
     try {
-        const pool = connectFromJWT(req);
         const result = await createProveedor(pool, req.body);
         res.status(201).json(result);
     }
     catch (error) {
-        console.log(error.message);
-        return res.status(500).json({
-            message: 'Error interno al crear el proveedor'
-        });
-    }
+        console.error('❌ ERROR CREATE PROVEEDOR:', error.code, error.message);
 
+        let message = 'Error interno al crear el proveedor';
+        let detail = error.message;
+        let status = 500;
+
+        // Manejo amigable de errores de BD
+        if (error.code === '23505') {
+            message = 'Ese RUC o Razón Social ya se encuentra registrado.';
+            status = 400;
+        } else if (error.code === '23502') {
+            message = 'Faltan campos obligatorios requeridos por la base de datos (Ej: Código).';
+            status = 400;
+        } else if (error.code === '23503') {
+            message = 'La ciudad seleccionada no es válida.';
+            status = 400;
+        }
+
+        return res.status(status).json({ message, detail, code: error.code });
+    } finally {
+        await pool.end();
+    }
 };
 
 /**
@@ -49,13 +68,15 @@ const update = async (req, res) => {
         return res.status(400).json({ errors });
     }
 
+    const pool = connectFromJWT(req);
     try {
-        const pool = connectFromJWT(req);
         const result = await updateProveedor(pool, req.params.id, req.body);
         res.status(200).json(result);
     } catch (error) {
         console.error('ERROR UPDATE PROVEEDOR:', error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Error al actualizar', detail: error.message });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -63,13 +84,30 @@ const update = async (req, res) => {
  * GET ALL
  */
 const getAll = async (req, res) => {
+    const { page = 1, limit = 10, search = '' } = req.query;
+    const offset = (page - 1) * limit;
+
+    const pool = connectFromJWT(req);
     try {
-        const pool = connectFromJWT(req);
-        const result = await getAllProveedor(pool);
-        res.status(200).json(result);
+        const [proveedores, total] = await Promise.all([
+            getAllProveedor(pool, parseInt(limit), parseInt(offset), search),
+            countAllProveedor(pool, search)
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        res.status(200).json({
+            data: proveedores,
+            total,
+            page: parseInt(page),
+            totalPages,
+            limit: parseInt(limit)
+        });
     } catch (error) {
         console.error('ERROR GET ALL PROVEEDOR:', error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Error al obtener listado', detail: error.message });
+    } finally {
+        await pool.end();
     }
 };
 

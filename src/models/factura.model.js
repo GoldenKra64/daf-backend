@@ -8,7 +8,8 @@
    FACTURAS - CABECERA
 ========================= */
 
-async function getAllFacturas(pool) {
+async function getAllFacturas(pool, limit = 10, offset = 0, search = '') {
+  const searchTerm = `%${search.toLowerCase().trim()}%`;
   const query = `
     SELECT
       f.fac_codigo,
@@ -19,10 +20,24 @@ async function getAllFacturas(pool) {
       c.cli_nombre
     FROM factura f
     JOIN cliente c ON c.cli_codigo = f.cli_codigo
+    WHERE (LOWER(f.fac_codigo) LIKE $3 OR LOWER(c.cli_nombre) LIKE $3)
     ORDER BY f.fac_fecha DESC
+    LIMIT $1 OFFSET $2
   `;
-  const { rows } = await pool.query(query);
+  const { rows } = await pool.query(query, [limit, offset, searchTerm]);
   return rows;
+}
+
+async function countAllFacturas(pool, search = '') {
+  const searchTerm = `%${search.toLowerCase().trim()}%`;
+  const query = `
+    SELECT COUNT(*) 
+    FROM factura f
+    JOIN cliente c ON c.cli_codigo = f.cli_codigo
+    WHERE (LOWER(f.fac_codigo) LIKE $1 OR LOWER(c.cli_nombre) LIKE $1)
+  `;
+  const { rows } = await pool.query(query, [searchTerm]);
+  return parseInt(rows[0].count);
 }
 
 async function getFacturaByCodigo(pool, facCodigo) {
@@ -81,7 +96,8 @@ async function createFactura(pool, data) {
       fac_estado,
       fac_subtotal,
       fac_iva,
-      fac_total
+      fac_total,
+      fac_fecha
     )
     VALUES (
       next_fac_codigo(),
@@ -90,13 +106,15 @@ async function createFactura(pool, data) {
       'PEN',
       0,
       0,
-      0
+      0,
+      $3
     )
     RETURNING fac_codigo
   `;
   const { rows } = await pool.query(query, [
     data.cli_codigo,
-    data.fac_descripcion
+    data.fac_descripcion,
+    data.fac_fecha || new Date()
   ]);
   return rows[0];
 }
@@ -104,6 +122,7 @@ async function createFactura(pool, data) {
 /* =========================
    FACTURAS - DETALLE
 ========================= */
+/*Tareas de Migración de Lógica de Anulación*/
 
 async function insertDetalleFactura(pool, data) {
   const query = `
@@ -175,14 +194,9 @@ WHERE d.fac_codigo = $1
 ========================= */
 
 async function aprobarFactura(pool, facCodigo) {
-  const query = `
-    UPDATE factura
-    SET fac_estado = 'APR'
-    WHERE fac_codigo = $1
-      AND TRIM(fac_estado) = 'PEN'
-  `;
-  const { rowCount } = await pool.query(query, [facCodigo]);
-  return rowCount;
+  const query = `CALL aprobar_factura($1)`;
+  await pool.query(query, [facCodigo]);
+  return 1; // El SP se encarga de la lógica y arroja error si falla
 }
 
 /* =========================
@@ -332,65 +346,10 @@ async function getFacCodigoByPxfa(client, pxfaCodigo) {
 }
 
 
-//ANULAR FACTURA COMPLETA (REVERSAR TODO)
 async function anularFacturaCompleta(pool, facCodigo) {
-  await pool.query('BEGIN');
-
-  try {
-    const detalle = await getDetalleFactura(pool, facCodigo);
-
-    // 1. Crear transacción ING
-    const trnCod = await insertTransaccion(pool, {
-      tipo: 'ING',
-      referencia: facCodigo
-    });
-
-    for (const item of detalle) {
-      // 2. Kardex ING
-      await insertKardexProducto(pool, {
-        trn_cod: trnCod,
-        prd_codigo: item.prd_codigo,
-        cantidad: item.pxfa_cantidad,
-        accion: 'ING'
-      });
-
-      // 3. Reponer stock (SUMA)
-      await updateStockProducto(
-        pool,
-        item.prd_codigo,
-        item.pxfa_cantidad,
-        'SUMA'
-      );
-    }
-
-    // 4. Cambiar estado factura
-    await pool.query(
-      `UPDATE factura
-       SET fac_estado = 'ANU'
-       WHERE fac_codigo = $1`,
-      [facCodigo]
-    );
-
-    await pool.query('COMMIT');
-  } catch (err) {
-    await pool.query('ROLLBACK');
-    throw err;
-  }
+  const query = `CALL anular_factura($1)`;
+  await pool.query(query, [facCodigo]);
 }
-
-
-async function updateEstadoFacturaANU(pool, facCodigo) {
-  const query = `
-    UPDATE factura
-    SET fac_estado = 'ANU'
-    WHERE fac_codigo = $1
-      AND TRIM(fac_estado) = 'PEN'
-    RETURNING fac_codigo
-  `;
-  const result = await pool.query(query, [facCodigo]);
-  return result.rowCount ? result.rows[0].fac_codigo : null;
-}
-
 
 async function anularFactura(pool, facCodigo) {
   return anularFacturaCompleta(pool, facCodigo);
@@ -411,6 +370,16 @@ async function nextKrdPrdCodigo(pool) {
 }
 
 
+async function deleteFactura(pool, facCodigo) {
+  const query = `
+    DELETE FROM factura 
+    WHERE TRIM(fac_codigo) = TRIM($1) 
+      AND TRIM(fac_estado) = 'PEN'
+  `;
+  const result = await pool.query(query, [facCodigo]);
+  return result.rowCount > 0;
+}
+
 /* =========================
    EXPORTS (SOLO SQL)
 ========================= */
@@ -418,8 +387,10 @@ async function nextKrdPrdCodigo(pool) {
 module.exports = {
   // cabecera
   getAllFacturas,
+  countAllFacturas,
   getFacturaByCodigo,
   createFactura,
+  deleteFactura,
 
   // detalle
   insertDetalleFactura,
@@ -435,6 +406,7 @@ module.exports = {
 
   // negocio
   aprobarFactura,
+  anularFactura,
   anularFacturaCompleta
 };
 
