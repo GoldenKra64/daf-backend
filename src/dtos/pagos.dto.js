@@ -29,7 +29,7 @@ const creditCardSchema = z
   .refine(luhnCheck, { message: "Número de tarjeta de crédito inválido" });
 
 const validateSchema = (creditCard) => {
-  return creditCardSchema.safeParse(creditCard);
+  return creditCardSchema.parse(creditCard);
 };
 
 module.exports = { validateSchema };

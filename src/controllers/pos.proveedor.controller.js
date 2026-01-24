@@ -1,4 +1,4 @@
-const { getConnectionWithCredentials } = require('../config/db_pos.js');
+const { getProveedorConnectionWithCredentials } = require('../config/db.proveedor.js');
 
 const {
     createProveedor,
@@ -16,7 +16,7 @@ const connectFromJWT = (req) => {
     // Soportar ambas variantes del payload (user o usuario)
     const usuario = req.user.usuario || req.user.user;
     const password = req.user.password;
-    return getConnectionWithCredentials(usuario, password);
+    return getProveedorConnectionWithCredentials(usuario, password);
 };
 
 /**
@@ -125,6 +125,8 @@ const getByID = async (req, res) => {
     } catch (error) {
         console.error('ERROR GET PROVEEDOR BY ID:', error);
         res.status(500).json({ message: error.message });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -145,6 +147,8 @@ const search = async (req, res) => {
     } catch (error) {
         console.error('ERROR SEARCH PROVEEDOR:', error);
         res.status(500).json({ message: error.message });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -159,6 +163,8 @@ const remove = async (req, res) => {
     } catch (error) {
         console.error('ERROR DELETE PROVEEDOR:', error);
         res.status(500).json({ message: error.message });
+    } finally {
+        await pool.end();
     }
 };
 
