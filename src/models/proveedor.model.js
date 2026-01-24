@@ -16,7 +16,7 @@ const createProveedor = async (pool, data) => {
     data.prv_direccion,
     data.ct_codigo,
     'ACT',
-    null
+    data.prv_fecha_alta || new Date()
   ];
   const result = await pool.query(query, values);
   return result.rows[0];

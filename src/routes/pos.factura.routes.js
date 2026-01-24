@@ -10,7 +10,8 @@ const {
    updateDetalleFactura,
    deleteDetalleFactura,
    aprobarFactura,
-   anularFactura
+   anularFactura,
+   deleteFactura
 } = require('../controllers/pos.factura.controller');
 
 const { verifyToken } = require('../middlewares/pos.auth.middleware');
@@ -34,6 +35,9 @@ router.put('/factura/:facCodigo/aprobar', verifyToken, aprobarFactura);
 
 // Anular factura
 router.put('/factura/:facCodigo/anular', verifyToken, anularFactura);
+
+// Eliminar factura (cabecera)
+router.delete('/factura/:facCodigo', verifyToken, deleteFactura);
 
 /* =====================================================
    FACTURAS - DETALLE
