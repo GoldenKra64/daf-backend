@@ -399,11 +399,6 @@ module.exports = {
   recalcTotalesFactura,
   getDetalleFactura,
 
-  // movimientos
-  insertTransaccion,
-  insertKardexProducto,
-  updateStockProducto,
-
   // negocio
   aprobarFactura,
   anularFactura,
