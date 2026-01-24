@@ -2,16 +2,16 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 /**
- * Pool técnico exclusivo para el módulo Proveedores
- * Usa las variables DB_* existentes
- * No afecta a otros módulos
+ * Conexión del módulo Proveedor (POS) usando credenciales dinámicas.
  */
-const proveedorPool = new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-});
+function getProveedorConnectionWithCredentials(user, password) {
+  return new Pool({
+    host: process.env.POS_HOST,
+    port: process.env.POS_PORT,
+    database: process.env.POS_NAME,
+    user,
+    password,
+  });
+}
 
-module.exports = proveedorPool;
+module.exports = { getProveedorConnectionWithCredentials };

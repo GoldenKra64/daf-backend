@@ -6,8 +6,8 @@ function getConnectionWithCredentials(user, password) {
     host: process.env.POS_HOST,
     port: process.env.POS_PORT,
     database: process.env.POS_NAME,
-    user: user,
-    password: password,
+    user,
+    password,
   });
 }
 

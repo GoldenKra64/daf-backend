@@ -98,6 +98,7 @@ const getDetallesCarrito = async (
       p.prd_nombre,
       p.prd_desc_corta,
       p.prd_img,
+      p.prd_precio_venta,
       pxca.pxca_cantidad,
       pxca.pxca_subtotal
     FROM productoxcarrito pxca

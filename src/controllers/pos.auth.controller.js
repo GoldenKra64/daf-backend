@@ -24,17 +24,13 @@ const login = async (req, res) => {
     `);
 
     // Extraemos todos los nombres de roles en un array
-    const roles = result.rows.map(row => row.rolname.trim().toLowerCase());
-
-    // Si no tiene roles de grupo, al menos sabemos que es un login válido
-    if (roles.length === 0) roles.push('user');
+    const role = result.rows[0] ? result.rows[0].rolname : 'usuario';
 
     const token = jwt.sign(
       {
         usuario: user,
         password: password,
-        roles: roles,
-        role: roles[0] || 'user',
+        role: role,
       },
       process.env.JWT_SECRET,
       {
@@ -45,7 +41,7 @@ const login = async (req, res) => {
     return res.status(200).json({
       message: 'Login exitoso',
       token,
-      roles,
+      role,
     });
 
   } catch (error) {

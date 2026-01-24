@@ -1,5 +1,12 @@
-const { getConnectionWithCredentials } = require('../config/db_pos.js');
+const { getFacturaConnectionWithCredentials } = require('../config/db.factura.js');
 const FacturaModel = require('../models/factura.model');
+
+const getCredsFromJWT = (req) => {
+  const usuario = req.user?.usuario || req.user?.user; // compat
+  const password = req.user?.password;
+  return { usuario, password };
+};
+
 
 /* =====================================================
    1️⃣ LISTAR LAS FACTURAS
@@ -29,7 +36,9 @@ const getAllFacturas = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: 'Error al obtener facturas' });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -54,6 +63,8 @@ const getFacturaByCodigo = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Error al obtener factura' });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -79,6 +90,8 @@ const createFactura = async (req, res) => {
     } catch (error) {
         console.error('ERROR CREATE FACTURA:', error);
         return res.status(500).json({ message: 'Error al crear factura' });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -127,6 +140,8 @@ const addDetalleFactura = async (req, res) => {
         }
         console.error('❌ ERROR ADD DETALLE:', error);
         return res.status(400).json({ message: error.message });
+    } finally {
+        await pool.end();
     }
 };
 
@@ -288,6 +303,7 @@ const deleteDetalleFactura = async (req, res) => {
         return res.status(500).json({ message: 'Error interno al eliminar detalle' });
     } finally {
         client.release();
+        await pool.end();
     }
 };
 
