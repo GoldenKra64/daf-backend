@@ -1,11 +1,5 @@
-const { getFacturaConnectionWithCredentials } = require('../config/db.factura.js');
+const { getConnectionWithCredentials } = require('../config/db_pos.js');
 const FacturaModel = require('../models/factura.model');
-
-const getCredsFromJWT = (req) => {
-  const usuario = req.user?.usuario || req.user?.user; // compat
-  const password = req.user?.password;
-  return { usuario, password };
-};
 
 
 /* =====================================================
