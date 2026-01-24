@@ -235,7 +235,7 @@ async function insertKardexProducto(pool, data) {
       krd_prd_codigo,
       trn_cod,
       prd_codigo,
-      krd_prd_cantidad,
+      krd_cantidad,
       krd_prd_fecha,
       krd_prd_accion
     )

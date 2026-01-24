@@ -6,7 +6,7 @@ const createKardexPrd = async (pool, data) => {
   const values = [
     data.prd_codigo,
     data.trn_cod,
-    data.krd_cantidad,
+    data.krd_prd_cantidad,
     data.krd_razon,
     data.est_cod || null
   ];
@@ -26,7 +26,7 @@ const getAllKardexPrd = async (pool, page = 1) => {
       p.prd_nombre as prd_descripcion,
       kp.trn_cod,
       t.trn_descripcion,
-      kp.krd_cantidad,
+      kp.krd_prd_cantidad,
       kp.krd_fechahora,
       kp.usr_id,
       kp.krd_razon,
@@ -54,7 +54,7 @@ const getKardexPrdByProduct = async (pool, prd_codigo, page = 1) => {
       p.prd_nombre as prd_descripcion,
       kp.trn_cod,
       t.trn_descripcion,
-      kp.krd_cantidad,
+      kp.krd_prd_cantidad,
       kp.krd_fechahora,
       kp.usr_id,
       kp.krd_razon,

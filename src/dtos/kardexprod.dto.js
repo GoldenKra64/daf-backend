@@ -9,10 +9,10 @@ const validateKardexProdDTO = (data) => {
         errors.push('trn_cod es requerido');
     }
 
-    if (data.krd_cantidad === undefined || data.krd_cantidad === null) {
-        errors.push('krd_cantidad es requerido');
-    } else if (typeof data.krd_cantidad !== 'number' || data.krd_cantidad <= 0) {
-        errors.push('krd_cantidad debe ser un número positivo');
+    if (data.krd_prd_cantidad === undefined || data.krd_prd_cantidad === null) {
+        errors.push('krd_prd_cantidad es requerido');
+    } else if (typeof data.krd_prd_cantidad !== 'number' || data.krd_prd_cantidad <= 0) {
+        errors.push('krd_prd_cantidad debe ser un número positivo');
     }
 
     if (data.trn_cod === 'ESI' && !data.est_cod) {

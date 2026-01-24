@@ -1,20 +1,14 @@
-const { getFacturaConnectionWithCredentials } = require('../config/db.factura.js');
 const FacturaModel = require('../models/factura.model');
-
-const getCredsFromJWT = (req) => {
-  const usuario = req.user?.usuario || req.user?.user; // compat
-  const password = req.user?.password;
-  return { usuario, password };
-};
-
+const { getConnectionWithCredentials } = require('../config/db_pos.js');
 
 /* =====================================================
    1️⃣ LISTAR LAS FACTURAS
 ===================================================== */
 const getAllFacturas = async (req, res) => {
+    let pool;
     try {
         const { usuario, password } = req.user;
-        const pool = getConnectionWithCredentials(usuario, password);
+        pool = getConnectionWithCredentials(usuario, password);
 
         // Paginación
         const page = parseInt(req.query.page) || 1;
@@ -38,7 +32,7 @@ const getAllFacturas = async (req, res) => {
         console.error(error);
         return res.status(500).json({ message: 'Error al obtener facturas' });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
@@ -47,10 +41,10 @@ const getAllFacturas = async (req, res) => {
 ===================================================== */
 const getFacturaByCodigo = async (req, res) => {
     const { facCodigo } = req.params;
-
+    let pool;
     try {
         const { usuario, password } = req.user;
-        const pool = getConnectionWithCredentials(usuario, password);
+        pool = getConnectionWithCredentials(usuario, password);
 
         const factura = await FacturaModel.getFacturaByCodigo(pool, facCodigo);
         if (!factura) {
@@ -64,7 +58,7 @@ const getFacturaByCodigo = async (req, res) => {
         console.error(error);
         return res.status(500).json({ message: 'Error al obtener factura' });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
@@ -72,13 +66,12 @@ const getFacturaByCodigo = async (req, res) => {
    3️⃣ CREAR FACTURA (PEN)
 ===================================================== */
 const createFactura = async (req, res) => {
-
-
+    let pool;
     try {
         const { cli_codigo, fac_descripcion } = req.body;
         const { usuario, password } = req.user;
 
-        const pool = getConnectionWithCredentials(usuario, password);
+        pool = getConnectionWithCredentials(usuario, password);
 
         const result = await FacturaModel.createFactura(pool, {
             cli_codigo,
@@ -91,7 +84,7 @@ const createFactura = async (req, res) => {
         console.error('ERROR CREATE FACTURA:', error);
         return res.status(500).json({ message: 'Error al crear factura' });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
@@ -99,11 +92,12 @@ const createFactura = async (req, res) => {
    4️⃣ AGREGAR DETALLE
 ===================================================== */
 const addDetalleFactura = async (req, res) => {
+    let pool;
     try {
         const { fac_codigo, prd_codigo, pxfa_cantidad } = req.body;
         const { usuario, password } = req.user;
 
-        const pool = getConnectionWithCredentials(usuario, password);
+        pool = getConnectionWithCredentials(usuario, password);
 
         // 🔎 Contexto REAL de la conexión
         const ctx = await pool.query(`
@@ -141,7 +135,7 @@ const addDetalleFactura = async (req, res) => {
         console.error('❌ ERROR ADD DETALLE:', error);
         return res.status(400).json({ message: error.message });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
@@ -153,9 +147,9 @@ const aprobarFactura = async (req, res) => {
     const { facCodigo } = req.params;
     const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(usuario, password);
-
+    let pool;
     try {
+        pool = getConnectionWithCredentials(usuario, password);
         // Toda la lógica de negocio (Referencia, Kardex, Stock, Estado) 
         // ahora reside en el Stored Procedure 'aprobar_factura'
         await FacturaModel.aprobarFactura(pool, facCodigo);
@@ -172,7 +166,8 @@ const aprobarFactura = async (req, res) => {
     } catch (error) {
         console.error('ERROR APROBAR FACTURA (SP):', error);
 
-        let message = 'No se pudo aprobar la factura. Por favor, intente de nuevo.';
+        /*let message = 'No se pudo aprobar la factura. Por favor, intente de nuevo.';*/
+        let message = error.message;
 
         if (error.message.includes('estado PENDIENTE')) {
             message = 'Esta factura ya no está pendiente y no puede ser aprobada.';
@@ -184,7 +179,7 @@ const aprobarFactura = async (req, res) => {
 
         res.status(400).json({ message });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
@@ -196,9 +191,9 @@ const anularFactura = async (req, res) => {
     const { facCodigo } = req.params;
     const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(usuario, password);
-
+    let pool;
     try {
+        pool = getConnectionWithCredentials(usuario, password);
         // Lógica delegada al SP en BD
         await FacturaModel.anularFactura(pool, facCodigo);
 
@@ -209,7 +204,8 @@ const anularFactura = async (req, res) => {
     } catch (error) {
         console.error('ERROR ANULAR FACTURA:', error);
 
-        let message = 'No se pudo anular la factura. Por favor, intente de nuevo.';
+        /*let message = 'No se pudo anular la factura. Por favor, intente de nuevo.';*/
+        let message = error.message;
 
         if (error.message.includes('no se puede anular')) {
             message = error.message;
@@ -219,7 +215,7 @@ const anularFactura = async (req, res) => {
 
         return res.status(400).json({ message });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
@@ -231,10 +227,11 @@ const updateDetalleFactura = async (req, res) => {
     const { pxfa_cantidad } = req.body;
     const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(usuario, password);
-    const client = await pool.connect();
-
+    let pool;
+    let client;
     try {
+        pool = getConnectionWithCredentials(usuario, password);
+        client = await pool.connect();
         await client.query('BEGIN');
 
         const updated = await FacturaModel.updateDetalleFactura(client, {
@@ -258,12 +255,12 @@ const updateDetalleFactura = async (req, res) => {
         });
 
     } catch (error) {
-        await client.query('ROLLBACK');
+        if (client) await client.query('ROLLBACK');
         console.error('ERROR UPDATE DETALLE:', error);
         return res.status(400).json({ message: error.message });
     } finally {
-        client.release();
-        await pool.end();
+        if (client) client.release();
+        if (pool) await pool.end();
     }
 };
 
@@ -275,10 +272,11 @@ const deleteDetalleFactura = async (req, res) => {
     const { pxfaCodigo } = req.params;
 
     const { usuario, password } = req.user;
-    const pool = getConnectionWithCredentials(usuario, password);
-    const client = await pool.connect();
-
+    let pool;
+    let client;
     try {
+        pool = getConnectionWithCredentials(usuario, password);
+        client = await pool.connect();
         await client.query('BEGIN');
 
         const facCodigo = await FacturaModel.deleteDetalleFactura(client, pxfaCodigo);
@@ -299,11 +297,11 @@ const deleteDetalleFactura = async (req, res) => {
             detalle: fullData.detalle
         });
     } catch (error) {
-        await client.query('ROLLBACK');
+        if (client) await client.query('ROLLBACK');
         return res.status(500).json({ message: 'Error interno al eliminar detalle' });
     } finally {
-        client.release();
-        await pool.end();
+        if (client) client.release();
+        if (pool) await pool.end();
     }
 };
 
@@ -314,9 +312,9 @@ const deleteFactura = async (req, res) => {
     const { facCodigo } = req.params;
     const { usuario, password } = req.user;
 
-    const pool = getConnectionWithCredentials(usuario, password);
-
+    let pool;
     try {
+        pool = getConnectionWithCredentials(usuario, password);
         const deleted = await FacturaModel.deleteFactura(pool, facCodigo);
         if (!deleted) {
             return res.status(400).json({
@@ -328,7 +326,7 @@ const deleteFactura = async (req, res) => {
         console.error('ERROR DELETE FACTURA:', error);
         return res.status(500).json({ message: 'Error interno al eliminar factura' });
     } finally {
-        await pool.end();
+        if (pool) await pool.end();
     }
 };
 
