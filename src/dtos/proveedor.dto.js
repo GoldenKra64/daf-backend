@@ -21,39 +21,43 @@ const createProveedorSchema = Joi.object({
         }),
 
     prv_telefono: Joi.string()
-        .length(10)
+        .max(10)
         .pattern(/^\d+$/)
         .required()
         .messages({
             'string.empty': 'El teléfono es obligatorio',
-            'string.length': 'El teléfono debe tener exactamente 10 dígitos',
+            'string.max': 'El teléfono no puede exceder los 10 dígitos',
             'string.pattern.base': 'El teléfono solo debe contener números'
         }),
 
     prv_celular: Joi.string()
-        .length(9)
+        .max(9)
         .pattern(/^\d+$/)
         .required()
         .messages({
             'string.empty': 'El celular es obligatorio',
-            'string.length': 'El celular debe tener exactamente 9 dígitos',
+            'string.max': 'El celular no puede exceder los 9 dígitos',
             'string.pattern.base': 'El celular solo debe contener números'
         }),
 
     prv_mail: Joi.string()
         .email()
+        .max(60)
         .required()
         .messages({
             'string.empty': 'El correo es obligatorio',
-            'string.email': 'Formato de correo electrónico no válido'
+            'string.email': 'Formato de correo electrónico no válido',
+            'string.max': 'El correo no puede exceder los 60 caracteres'
         }),
 
     prv_direccion: Joi.string()
-        .min(10)
+        .min(5)
+        .max(60)
         .required()
         .messages({
             'string.empty': 'La dirección es obligatoria',
-            'string.min': 'La dirección debe tener al menos 10 caracteres'
+            'string.min': 'La dirección debe tener al menos 5 caracteres',
+            'string.max': 'La dirección no puede exceder los 60 caracteres'
         }),
 
     ct_codigo: Joi.string()
@@ -88,31 +92,35 @@ const updateProveedorSchema = Joi.object({
         }),
 
     prv_telefono: Joi.string()
-        .length(10)
+        .max(10)
         .pattern(/^\d+$/)
         .messages({
-            'string.length': 'El teléfono debe tener 10 dígitos',
+            'string.max': 'El teléfono debe tener máximo 10 dígitos',
             'string.pattern.base': 'El teléfono solo debe contener números'
         }),
 
     prv_celular: Joi.string()
-        .length(9)
+        .max(9)
         .pattern(/^\d+$/)
         .messages({
-            'string.length': 'El celular debe tener 9 dígitos',
+            'string.max': 'El celular debe tener máximo 9 dígitos',
             'string.pattern.base': 'El celular solo debe contener números'
         }),
 
     prv_mail: Joi.string()
         .email()
+        .max(60)
         .messages({
-            'string.email': 'Formato de correo electrónico no válido'
+            'string.email': 'Formato de correo electrónico no válido',
+            'string.max': 'El correo no puede exceder los 60 caracteres'
         }),
 
     prv_direccion: Joi.string()
-        .min(10)
+        .min(5)
+        .max(60)
         .messages({
-            'string.min': 'La dirección debe tener al menos 10 caracteres'
+            'string.min': 'La dirección debe tener al menos 5 caracteres',
+            'string.max': 'La dirección no puede exceder los 60 caracteres'
         }),
 
     ct_codigo: Joi.string()

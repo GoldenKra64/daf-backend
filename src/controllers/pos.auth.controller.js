@@ -27,7 +27,7 @@ const login = async (req, res) => {
     // Intentamos conectar a la BD con las credenciales que manda Postman
     pool = getConnectionWithCredentials(user, password);
 
-    // Verificamos si el usuario tiene rol en PostgreSQL
+    // Verificamos todos los roles a los que pertenece el usuario
     const result = await pool.query(`
       SELECT r.rolname
       FROM pg_roles r
@@ -36,14 +36,18 @@ const login = async (req, res) => {
       WHERE u.rolname = (SELECT CURRENT_USER)
     `);
 
-    // Si la consulta falla o no trae filas, saltará al catch
-    const role = result.rows[0] ? result.rows[0].rolname : 'usuario';
+    // Extraemos todos los nombres de roles en un array
+    const roles = result.rows.map(row => row.rolname.trim().toLowerCase());
+
+    // Si no tiene roles de grupo, al menos sabemos que es un login válido
+    if (roles.length === 0) roles.push('user');
 
     const token = jwt.sign(
       {
         usuario: user,
         password: password,
-        role: role,
+        roles: roles,
+        role: roles[0] || 'user', // Restauramos compatibilidad singular
       },
       process.env.JWT_SECRET,
       {
@@ -54,7 +58,7 @@ const login = async (req, res) => {
     return res.status(200).json({
       message: 'Login exitoso',
       token,
-      role,
+      roles,
     });
 
   } catch (error) {

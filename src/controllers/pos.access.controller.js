@@ -12,6 +12,7 @@ const getAccessByRole = (role) => {
 
   switch (role) {
     case 'bodega':
+    case 'adm_bodega':
       return {
         ...accessTemplate,
         PRODUCTO: true,
@@ -21,6 +22,8 @@ const getAccessByRole = (role) => {
       };
 
     case 'ventas':
+    case 'adm_ventas':
+    case 'adm_fact':
       return {
         ...accessTemplate,
         PRODUCTO: true,
@@ -29,6 +32,7 @@ const getAccessByRole = (role) => {
       };
 
     case 'compras':
+    case 'adm_compras':
       return {
         ...accessTemplate,
         MATERIA_PRIMA: true,
@@ -41,7 +45,7 @@ const getAccessByRole = (role) => {
         key => accessTemplate[key] = true
       );
       return accessTemplate;
-      
+
     case 'postgres':
       Object.keys(accessTemplate).forEach(
         key => accessTemplate[key] = true

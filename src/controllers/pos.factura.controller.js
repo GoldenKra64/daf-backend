@@ -9,8 +9,23 @@ const getAllFacturas = async (req, res) => {
         const { user, password } = req.user;
         const pool = getConnectionWithCredentials(user, password);
 
-        const facturas = await FacturaModel.getAllFacturas(pool);
-        return res.json(facturas);
+        // Paginación
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const offset = (page - 1) * limit;
+
+        const [facturas, total] = await Promise.all([
+            FacturaModel.getAllFacturas(pool, limit, offset, search),
+            FacturaModel.countAllFacturas(pool, search)
+        ]);
+
+        return res.json({
+            data: facturas,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
 
     } catch (error) {
         console.error(error);
@@ -46,8 +61,7 @@ const getFacturaByCodigo = async (req, res) => {
    3️⃣ CREAR FACTURA (PEN)
 ===================================================== */
 const createFactura = async (req, res) => {
-    console.log('HEADERS:', req.headers['content-type'])
-    console.log('REQ.BODY:', req.body)
+
 
     try {
         const { cli_codigo, fac_descripcion } = req.body;
@@ -73,17 +87,8 @@ const createFactura = async (req, res) => {
 ===================================================== */
 const addDetalleFactura = async (req, res) => {
     try {
-        console.log('--- ADD DETALLE FACTURA ---');
-
-        console.log('REQ.BODY:', req.body);
-        console.log('REQ.USER:', req.user);
-
         const { fac_codigo, prd_codigo, pxfa_cantidad } = req.body;
         const { user, password } = req.user;
-
-        console.log('fac_codigo:', fac_codigo);
-        console.log('prd_codigo:', prd_codigo);
-        console.log('pxfa_cantidad:', pxfa_cantidad);
 
         const pool = getConnectionWithCredentials(user, password);
 
@@ -91,15 +96,12 @@ const addDetalleFactura = async (req, res) => {
         const ctx = await pool.query(`
       SELECT current_database() AS db, current_user AS usr
     `);
-        console.log('DB CONTEXT:', ctx.rows[0]);
 
-        console.log('➡️ Ejecutando insertDetalleFactura...');
         await FacturaModel.insertDetalleFactura(pool, {
             fac_codigo,
             prd_codigo,
             pxfa_cantidad
         });
-        console.log('✅ insertDetalleFactura ejecutado');
 
         // 🔎 Verificación inmediata en BD (MISMA conexión)
         const check = await pool.query(
@@ -109,11 +111,7 @@ const addDetalleFactura = async (req, res) => {
         ORDER BY pxfa_codigo DESC`,
             [fac_codigo]
         );
-        console.log('ROWS AFTER INSERT:', check.rows);
-
-        console.log('➡️ Recalculando totales...');
         await FacturaModel.recalcTotalesFactura(pool, fac_codigo);
-        console.log('✅ Totales recalculados');
 
         const fullData = await FacturaModel.getFacturaByCodigo(pool, fac_codigo);
 
@@ -141,52 +139,15 @@ const aprobarFactura = async (req, res) => {
     const { user, password } = req.user;
 
     const pool = getConnectionWithCredentials(user, password);
-    const client = await pool.connect();
 
     try {
-        await client.query('BEGIN');
+        // Toda la lógica de negocio (Referencia, Kardex, Stock, Estado) 
+        // ahora reside en el Stored Procedure 'aprobar_factura'
+        await FacturaModel.aprobarFactura(pool, facCodigo);
 
-        // 1. Insertar transacción (EGR)
-        const trnCod = await FacturaModel.insertTransaccion(client, {
-            tipo: 'EGR',
-            referencia: facCodigo
-        });
-
-        // 2. Obtener detalle
-        const detalles = await FacturaModel.getDetalleFactura(client, facCodigo);
-        if (detalles.length === 0) {
-            throw new Error('Factura sin detalle');
-        }
-
-        // 3. Kardex + stock
-        for (const item of detalles) {
-            const updated = await FacturaModel.updateStockProducto(
-                client,
-                item.prd_codigo,
-                item.pxfa_cantidad
-            );
-
-            if (updated === 0) {
-                throw new Error(`Stock insuficiente para ${item.prd_codigo}`);
-            }
-
-            await FacturaModel.insertKardexProducto(client, {
-                trn_cod: trnCod,
-                prd_codigo: item.prd_codigo,
-                cantidad: item.pxfa_cantidad,
-                accion: 'EGR'
-            });
-        }
-
-        // 4. Cambiar estado factura
-        const ok = await FacturaModel.aprobarFactura(client, facCodigo);
-        if (ok === 0) {
-            throw new Error('Factura no está en estado PEN');
-        }
-
-        await client.query('COMMIT');
-
+        // Obtener datos actualizados para responder al frontend
         const fullData = await FacturaModel.getFacturaByCodigo(pool, facCodigo);
+
         res.json({
             message: 'Factura aprobada correctamente',
             factura: fullData.factura,
@@ -194,11 +155,20 @@ const aprobarFactura = async (req, res) => {
         });
 
     } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('ERROR APROBAR FACTURA:', error);
-        res.status(400).json({ message: error.message });
+        console.error('ERROR APROBAR FACTURA (SP):', error);
+
+        let message = 'No se pudo aprobar la factura. Por favor, intente de nuevo.';
+
+        if (error.message.includes('estado PENDIENTE')) {
+            message = 'Esta factura ya no está pendiente y no puede ser aprobada.';
+        } else if (error.message.includes('Stock insuficiente')) {
+            message = error.message;
+        } else if (error.message.includes('no existe')) {
+            message = 'La factura solicitada no existe.';
+        }
+
+        res.status(400).json({ message });
     } finally {
-        client.release();
         await pool.end();
     }
 };
@@ -214,15 +184,25 @@ const anularFactura = async (req, res) => {
     const pool = getConnectionWithCredentials(user, password);
 
     try {
-        await FacturaModel.anularFacturaCompleta(pool, facCodigo);
-        return res.json({ message: 'Factura anulada correctamente' });
+        // Lógica delegada al SP en BD
+        await FacturaModel.anularFactura(pool, facCodigo);
+
+        return res.json({
+            message: 'Factura anulada correctamente'
+        });
 
     } catch (error) {
-        console.error('ERROR ANULAR FACTURA (BACKEND):', error);
-        return res.status(400).json({
-            message: error.message,
-            stack: error.stack
-        });
+        console.error('ERROR ANULAR FACTURA:', error);
+
+        let message = 'No se pudo anular la factura. Por favor, intente de nuevo.';
+
+        if (error.message.includes('no se puede anular')) {
+            message = error.message;
+        } else if (error.message.includes('no existe')) {
+            message = 'La factura solicitada no existe.';
+        }
+
+        return res.status(400).json({ message });
     } finally {
         await pool.end();
     }
@@ -312,6 +292,31 @@ const deleteDetalleFactura = async (req, res) => {
 };
 
 /* =====================================================
+   9️⃣ ELIMINAR FACTURA CABECERA (SOLO PEN)
+===================================================== */
+const deleteFactura = async (req, res) => {
+    const { facCodigo } = req.params;
+    const { user, password } = req.user;
+
+    const pool = getConnectionWithCredentials(user, password);
+
+    try {
+        const deleted = await FacturaModel.deleteFactura(pool, facCodigo);
+        if (!deleted) {
+            return res.status(400).json({
+                message: 'No se pudo eliminar la factura (puede que no exista o no esté en estado PENDIENTE)'
+            });
+        }
+        return res.json({ message: 'Factura eliminada correctamente' });
+    } catch (error) {
+        console.error('ERROR DELETE FACTURA:', error);
+        return res.status(500).json({ message: 'Error interno al eliminar factura' });
+    } finally {
+        await pool.end();
+    }
+};
+
+/* =====================================================
    EXPORT
 ===================================================== */
 module.exports = {
@@ -322,5 +327,6 @@ module.exports = {
     aprobarFactura,
     anularFactura,
     updateDetalleFactura,
-    deleteDetalleFactura
+    deleteDetalleFactura,
+    deleteFactura
 };
