@@ -162,9 +162,13 @@ async function recalcTotalesFactura(pool, facCodigo) {
         FROM detalle_factura d
         WHERE d.fac_codigo = f.fac_codigo
       ), 0),
-      fac_iva = 0,
+      fac_iva = COALESCE((
+        SELECT SUM(d.pxfa_subtotal) * 0.15
+        FROM detalle_factura d
+        WHERE d.fac_codigo = f.fac_codigo
+      ), 0),
       fac_total = COALESCE((
-        SELECT SUM(d.pxfa_subtotal)
+        SELECT SUM(d.pxfa_subtotal) * 1.15
         FROM detalle_factura d
         WHERE d.fac_codigo = f.fac_codigo
       ), 0)
@@ -232,27 +236,36 @@ async function insertKardexProducto(pool, data) {
 
   await pool.query(`
     INSERT INTO kardex_prd (
-      krd_prd_codigo,
+      krd_codigo,
       trn_cod,
       prd_codigo,
+      fac_codigo,
       krd_cantidad,
-      krd_prd_fecha,
-      krd_prd_accion
+      krd_razon,
+      est_cod,
+      krd_fechahora,
+      usr_id
     )
     VALUES (
       $1,
       $2,
       $3,
       $4,
+      $5,
+      $6,
+      $7,
       NOW(),
-      $5
+      $8
     )
   `, [
-    krdCodigo,           // ← NUNCA NULL
-    data.trn_cod,        // TRNxxxx
-    data.prd_codigo,     // PRDxxxx
-    data.cantidad,       // integer
-    data.accion          // 'ING' o 'EGR'
+    krdCodigo,
+    data.trn_cod,
+    data.prd_codigo,
+    data.fac_codigo,
+    data.cantidad,
+    data.razon || null,
+    data.est_cod || null,
+    data.usr_id
   ]);
 }
 
@@ -359,7 +372,7 @@ async function nextKrdPrdCodigo(pool) {
   const { rows } = await pool.query(`
     SELECT
       'KRD' || LPAD(
-        (COALESCE(MAX(SUBSTRING(krd_prd_codigo, 4)::int), 0) + 1)::text,
+        (COALESCE(MAX(SUBSTRING(krd_codigo, 4)::int), 0) + 1)::text,
         4,
         '0'
       ) AS codigo
